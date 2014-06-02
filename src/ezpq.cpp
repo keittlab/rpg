@@ -77,26 +77,26 @@ void disconnect()
   clear_conn();
 }
 
-//' @return connErr: an error string
-//' @export connErr
+//' @return get_conn_error: an error string
+//' @export get_conn_error
 //' @rdname connection
 // [[Rcpp::export]]
-CharacterVector connErr()
+CharacterVector get_conn_error()
 {
   CharacterVector err(PQerrorMessage(conn));
   err.attr("class") = "pq.error.message";
   return err;
 }
 
-//' @details \code{connInfo} returns a list containing
+//' @details \code{get_conn_info} returns a list containing
 //' information about the current connection. For
 //' readability, it will print as though it is a matrix. If
-//' you want to see it as a list, try \code{unclass(connInfo())}.
-//' @return connInfo: a list of values
-//' @export connInfo
+//' you want to see it as a list, try \code{unclass(get_conn_info())}.
+//' @return get_conn_info: a list of values
+//' @export get_conn_info
 //' @rdname connection
 // [[Rcpp::export]]
-SEXP connInfo()
+SEXP get_conn_info()
 {
   List info;
   info["dbname"] = wrap_string(PQdb(conn));
@@ -123,7 +123,7 @@ SEXP connInfo()
   info["time.zone"] = fetch_par("TimeZone");
   info["integer.datetimes"] = fetch_par("integer_datetimes");
   info["standard.conforming.strings"] = fetch_par("standard_conforming_strings");
-  info.attr("class") = "connInfo";
+  info.attr("class") = "get_conn_info";
   return wrap(info);
 }
 
@@ -151,7 +151,7 @@ SEXP connInfo()
 // [[Rcpp::export]]
 CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
 {
-  clear_res();
+  clear_res(); check_conn();
   if ( PQprotocolVersion(conn) > 2 && ! Rf_isNull(pars) )
   {
     std::vector<const char*> vals = c_str_vec_from_sexp(pars);
@@ -164,14 +164,46 @@ CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
   return out;
 }
 
-//' @return \code{queryErr} returns an error string
-//' @export queryErr
+//' @return \code{get_query_error} returns an error string
+//' @export get_query_error
 //' @rdname query
 // [[Rcpp::export]]
-CharacterVector queryErr()
+CharacterVector get_query_error()
 {
   CharacterVector err(PQresultErrorMessage(res));
   err.attr("class") = "pq.error.message";
   return err;
+}
+
+// [[Rcpp::export]]
+CharacterMatrix fetch_matrix()
+{
+  int nc = PQnfields(res),
+      nr = PQntuples(res);
+  CharacterMatrix out(nr, nc);
+  for ( int i = 0; i < nr; ++i )
+    for ( int j = 0; j < nc; ++ j )
+      out(i, j) = fetch_string(i, j);
+  return out;
+}
+
+// [[Rcpp::export]]
+List fetch_dataframe()
+{
+  List out;
+  int nrow = PQntuples(res),
+      ncol = PQnfields(res);
+  if ( nrow == 0 || ncol == 0 ) return out;
+  CharacterVector names(ncol);
+  for ( int col = 0; col < ncol; ++col )
+  {
+    std::string colname = PQfname(res, col);
+    out[colname] = fetch_column(col);
+    names[col] = colname;
+  }
+  out.attr("row.names") = IntegerVector(seq(1, nrow));
+  out.attr("class") = "data.frame";
+  out.attr("names") = names;
+  return out;
 }
 

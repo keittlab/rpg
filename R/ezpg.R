@@ -2,6 +2,15 @@
 NULL
 
 #' @export
+fetch = function(sql = "", pars = NULL)
+{
+  res = query(sql, pars)
+  if ( res == "PGRES_TUPLES_OK" )
+    fetch_dataframe()
+  else res
+}
+
+#' @export
 .Last.lib = function(libpath)
 {
   disconnect()

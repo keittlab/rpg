@@ -2,6 +2,7 @@
 #define __EZPG_H__
 
 #include <libpq-fe.h>
+
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -19,6 +20,12 @@ static void clear_conn()
   clear_res();
   if ( conn ) PQfinish(conn);
   conn = NULL;
+}
+
+static void check_conn(const char* opts = "")
+{
+  if ( ! conn )
+    conn = PQconnectdb(opts);
 }
 
 static SEXP wrap_string(const char* s)
@@ -76,31 +83,58 @@ static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
   return out;
 }
 
-static DataFrame retrieveRows()
+static SEXP fetch_string(int row = 0, int col = 0)
 {
-  int nc = PQnfields(res),
-      nr = PQntuples(res);
-  List df(nc);
-  CharacterVector cnames(nc),
-                  rnames(nr);
-  for ( int i = 0; i < nc; ++i )
+  if ( PQgetisnull(res, row, col) ) return NA_STRING;
+  std::string val = PQgetvalue(res, row, col);
+  return Rf_mkChar(val.c_str());
+}
+
+static int fetch_int(int row = 0, int col = 0)
+{
+  if ( PQgetisnull(res, row, col) ) return NA_INTEGER;
+  std::string val = PQgetvalue(res, row, col);
+  return atoi(val.c_str());
+}
+
+static double fetch_double(int row = 0, int col = 0)
+{
+  if ( PQgetisnull(res, row, col) ) return NA_REAL;
+  std::string val = PQgetvalue(res, row, col);
+  return atof(val.c_str());
+}
+
+static SEXP fetch_column(const int col = 0)
+{
+  int nrow = PQntuples(res);
+  switch ( PQftype(res, col) )
   {
-    cnames[i] = PQfname(res, i);
-    df[i] = CharacterVector(nr);
-  }
-  for ( int i = 0; i < nr; ++i )
-  {
-    rnames[i] = i;
-    for ( int j = 0; j < nc; ++j )
+    case 20:
+    case 21:
+    case 23:
     {
-      CharacterVector col = df[j];
-      col[i] = PQgetvalue(res, i, j);
+      IntegerVector out(nrow);
+      for ( int row = 0; row < nrow; ++row )
+        out[row] = fetch_int(row, col);
+      return wrap(out);
+    }
+    case 700:
+    case 701:
+    {
+      NumericVector out(nrow);
+      for ( int row = 0; row < nrow; ++row )
+        out[row] = fetch_double(row, col);
+      return wrap(out);
+    }    
+    default:
+    {
+      CharacterVector out(nrow);
+      for ( int row = 0; row < nrow; ++row )
+        out[row] = fetch_string(row, col);
+      return wrap(out);
     }
   }
-  df.attr("names") = cnames;
-  df.attr("row.names") = rnames;
-  df.attr("class") = "data.frame";
-  return df;
+  return R_NilValue;
 }
 
 #endif // __EZPG_H__
