@@ -132,6 +132,7 @@ SEXP connInfo()
 //' Issue a query to the current database connection
 //' 
 //' @param sql a query string
+//' @param pars a character vector of substitution values
 //' 
 //' @return \code{query} returns:
 //' \tabular{ll}{
@@ -148,10 +149,15 @@ SEXP connInfo()
 //' @rdname query
 //' @export query
 // [[Rcpp::export]]
-CharacterVector query(const char* sql = "")
+CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
 {
   clear_res();
-  res = PQexec(conn, sql);
+  if ( PQprotocolVersion(conn) > 2 && ! Rf_isNull(pars) )
+  {
+    std::vector<const char*> vals = c_str_vec_from_sexp(pars);
+    res = PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0);
+  }
+  else res = PQexec(conn, sql);
   CharacterVector out(PQresStatus(PQresultStatus(res)));
   out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
   out.attr("class") = "pq.status";

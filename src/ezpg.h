@@ -66,6 +66,16 @@ static SEXP fetch_par(const char* par)
   return status ? wrap(CharacterVector(status)) : R_NilValue;
 }
 
+static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
+{
+  CharacterVector y(x);
+  std::vector<const char*> out;
+  for ( int i = 0; i < y.size(); ++i )
+    if ( Rf_isNull(y[i]) ) out.push_back(0);
+    else out.push_back(std::string(y[i]).c_str());
+  return out;
+}
+
 static DataFrame retrieveRows()
 {
   int nc = PQnfields(res),
