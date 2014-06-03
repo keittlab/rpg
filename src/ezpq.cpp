@@ -40,7 +40,7 @@
 CharacterVector connect(const char* opts = "")
 {
   clear_conn();
-  conn = PQconnectdb(opts);
+  setup_connection(opts);
   CharacterVector out(connection_status_string());
   out.attr("error.message") = connection_error_string();
   out.attr("class") = "pq.status";
@@ -123,7 +123,7 @@ SEXP get_conn_info()
   info["time.zone"] = fetch_par("TimeZone");
   info["integer.datetimes"] = fetch_par("integer_datetimes");
   info["standard.conforming.strings"] = fetch_par("standard_conforming_strings");
-  info.attr("class") = "get_conn_info";
+  info.attr("class") = "conn.info";
   return wrap(info);
 }
 
@@ -153,10 +153,7 @@ CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
 {
   clear_res(); check_conn();
   if ( PQprotocolVersion(conn) > 2 && ! Rf_isNull(pars) )
-  {
-    std::vector<const char*> vals = c_str_vec_from_sexp(pars);
-    res = PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0);
-  }
+    exec_params(sql, pars);
   else res = PQexec(conn, sql);
   CharacterVector out(PQresStatus(PQresultStatus(res)));
   out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
@@ -201,7 +198,7 @@ List fetch_dataframe()
     out[colname] = fetch_column(col);
     names[col] = colname;
   }
-  out.attr("row.names") = IntegerVector(seq(1, nrow));
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -nrow);
   out.attr("class") = "data.frame";
   out.attr("names") = names;
   return out;
