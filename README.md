@@ -11,6 +11,6 @@ I am working on some advanced features like binary cursors.
 
 To install, paste into R:
 
-install.packages("devtools", "Rcpp", "roxygen2")
+install.packages(c("devtools", "Rcpp", "roxygen2"))
 
 devtools::github_install("ezpg", "thk686")
