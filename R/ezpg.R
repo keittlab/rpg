@@ -95,6 +95,9 @@ describe_table = function(tablename)
 #' \dontrun{
 #' data(mtcars)
 #' 
+#' # default connection
+#' connect()
+#' 
 #' # just the columns
 #' write_table(mtcars, overwrite = T)
 #' 
