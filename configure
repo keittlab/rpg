@@ -1,4 +1,4 @@
 #!/bin/sh
-Rscript --slave -e 'if ( require(Rcpp) ) compileAttributes()'
-Rscript --slave -e 'if ( require(roxygen2) ) roxygenize()'
+Rscript --slave -e 'if ( require(Rcpp, quietly = T) ) compileAttributes()'
+Rscript --slave -e 'if ( require(roxygen2, quietly = T) ) roxygenize()'
 exit
