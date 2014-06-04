@@ -1,0 +1,4 @@
+#!/bin/sh
+Rscript -e 'if ( require(Rcpp) ) compileAttributes()'
+Rscript -e 'if ( require(roxygen2) ) roxygenize()'
+exit
