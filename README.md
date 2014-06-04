@@ -11,9 +11,19 @@ I am working on some advanced features like binary cursors.
 
 # Installation
 
-You wil need to install [libpq](http://www.postgresql.org/download/) as a requirement. The configure step will call pg_config.
-If typing system("pg_config --version") in R does not return anything, then this package will likely not install.
+You wil need to install [libpq](http://www.postgresql.org/download/) as a requirement.
+The configure step will call [pg_config](http://www.postgresql.org/docs/9.1/static/app-pgconfig.html).
 
+If typing
+
+```
+system("pg_config --version")
+```
+
+in R does not return anything, then this package will likely not install. To install in R, try
+
+```
 install.packages(c("devtools", "Rcpp", "roxygen2"))
-
 devtools::install_github("ezpg", "thk686")
+```
+
