@@ -63,7 +63,7 @@ format_dates = function(x)
 set_schema = function(a, b)
 {
   if ( !is.null(b) )
-    a = paste(dquote_esc(b), tablename, sep = ".")
+    a = paste(dquote_esc(b), a, sep = ".")
   return(a)
 }
 

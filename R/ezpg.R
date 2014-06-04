@@ -18,7 +18,7 @@ fetch = function(sql = "", pars = NULL)
 #' 
 #' Get information about tables in a database
 #' 
-#' @param only.name if true, just list the table names
+#' @param only.names if true, just list the table names
 #' @param no.postgres if true, exclude tables owned by the postgres role
 #' 
 #' @return \code{list_tables} a list of table names
@@ -35,23 +35,24 @@ list_tables = function(only.names = TRUE, no.postgres = TRUE)
   res
 }
 
+#' @param tablename the name of a PostgreSQL table
 #' @return \code{describe_table}: a data frame with column information
 #' @rdname table-info
 #' @export
 describe_table = function(tablename)
 {
-  fetch("select
+  fetch("SELECT
           table_schema as schema,
           table_name as table,
           column_name as column,
           ordinal_position as position,
           data_type as type,
           column_default as default
-        from
+        FROM
           information_schema.columns
-        where
+        WHERE
           table_name = $1
-        order by
+        ORDER BY
           ordinal_position", tablename)
 }
 
@@ -199,6 +200,7 @@ read_table = function(tablename,
   sql = paste("select", what, "from", tablename)
   if ( !is.null(limit) ) sql = paste(sql, "limit", limit)
   res = fetch(sql)
+  if ( inherits(res, "pq.status" ) ) return(res) 
   if ( pkey_to_row_names && is.null(row_names) )
     row_names = get_primary_key_name(tablename)
   if ( !is.null(row_names) )
