@@ -204,3 +204,32 @@ List fetch_dataframe()
   return out;
 }
 
+//' @export
+// [[Rcpp::export]]
+void trace_conn(const char* filename = "", bool append = false)
+{
+  check_conn();
+  if ( !strlen(filename) ) filename = tempfile();
+  if ( tracef ) fclose(tracef);
+  tracef = fopen(filename, append ? "a" : "w");
+  if ( tracef )
+    tracefname = filename;
+  else
+    Rf_warning("Unable to open tracefile");
+  PQtrace(conn, tracef);
+}
+
+//' @export
+// [[Rcpp::export]]
+void untrace_conn(bool remove = false)
+{
+  if ( remove && tracefname ) unlink(tracefname);
+  clear_tracef();
+}
+
+//' @export
+// [[Rcpp::export]]
+const char* get_trace_filename()
+{
+  return tracefname;
+}

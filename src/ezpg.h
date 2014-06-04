@@ -8,6 +8,8 @@ using namespace Rcpp;
 
 static PGconn* conn = NULL;
 static PGresult* res = NULL;
+static const char* tracefname = NULL;
+static std::FILE* tracef = NULL;
 
 static void clear_res()
 {
@@ -15,9 +17,18 @@ static void clear_res()
   res = NULL;
 }
 
+static void clear_tracef()
+{
+  PQuntrace(conn);
+  if ( tracef ) fclose(tracef);
+  tracef = NULL;
+  tracefname = NULL;
+}
+
 static void clear_conn()
 {
   clear_res();
+  clear_tracef();
   PQfinish(conn);
   conn = NULL;
 }
@@ -45,8 +56,10 @@ static void check_conn(const char* opts = "")
   if ( PQstatus(conn) == CONNECTION_BAD )
   {
     setup_connection(opts);
-    Rf_warning("No database connection; attempting to connect to default database");
+    Rf_warning("Attempting to connect to default database");
   }
+  if ( PQstatus(conn) == CONNECTION_BAD )
+     Rf_warning("Connection failed");
 }
 
 static SEXP wrap_string(const char* s)
@@ -195,6 +208,12 @@ static SEXP fetch_column(const int col = 0)
     }
   }
   return R_NilValue;
+}
+
+static const char* tempfile()
+{
+  Function tf("tempfile");
+  return as<const char*>(tf());
 }
 
 #endif // __EZPG_H__
