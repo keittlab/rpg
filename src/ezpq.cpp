@@ -10,14 +10,20 @@
 //' connection will fallback to default parameters. Usually
 //' this establishes a connection on the localhost to a database,
 //' if it exists, with the same name as the user.
+//'
+//' Valid keywords and their defaults can be obtained by calling
+//' \code{get_conn_defaults()}. 
 //' 
-//' See the PostgreSQL documentation (\url{http://www.postgresql.org})
-//' for default and valid connection parameters.
-//' 
-//' Warning: do not open a connection and then fork the R
+//' @note Do not open a connection and then fork the R
 //' process. The behavior will be unpredictable. It is perfectly
 //' acceptable however to call \code{connect} within each
 //' forked instance.
+//' 
+//' Be careful with \code{ping} as it will attemp to connect to
+//' the database server on a remote host, which might not be
+//' appreciated by a remote administator. Also, \code{ping} may
+//' seem to hang for a long time. It is just polling the connection
+//' until it times out.
 //' 
 //' @return
 //' \code{connect} returns one of:
@@ -25,14 +31,18 @@
 //' \code{CONNECTION_OK} \tab Succesful connection \cr
 //' \code{CONNECTION_BAD} \tab Connection failed \cr}
 //' 
+//' @author Timothy H. Keitt
+//' 
 //' @examples
 //' \dontrun{
-//' if ( connect("dbname=testing") )
-//' {
-//'   query("select * from testtab")
-//'   disconnect()
-//' }
-//' }
+//' ping("connect_timeout = 5, host = www.r-project.org")
+//' connect("host = localhost")
+//' fetch("show search_path")}
+//' get_conn_defaults()
+//' get_conn_info()
+//' get_conn_error()
+//' \dontrun{
+//' disconnect()}
 //' 
 //' @export connect
 //' @rdname connection
@@ -47,6 +57,10 @@ CharacterVector connect(const char* opts = "")
   return out;
 }
 
+//' @details \code{ping} will ignore any keywords not directly
+//' related to the database host (e.g., username, dbname) as it
+//' does not connect; it only detect the server port is responding.
+//' 
 //' @return \code{ping} returns one of the following:
 //' \tabular{ll}{
 //' \code{PQPING_OK}  \tab Server reachable \cr
@@ -59,10 +73,7 @@ CharacterVector connect(const char* opts = "")
 // [[Rcpp::export]]
 CharacterVector ping(const char* opts = "")
 {
-  CharacterVector out(ping_status_string(opts));
-  out.attr("error.message") = connection_error_string();
-  out.attr("class") = "pq.status";
-  return out;
+  return ping_status_string(opts);
 }
 
 //' @details \code{disconnect} will free any query results as well
@@ -204,6 +215,31 @@ List fetch_dataframe()
   return out;
 }
 
+//' PostgeSQL connection tracing
+//' 
+//' Functions to manage connection tracing
+//' 
+//' @param filename where to send the tracing
+//' @param append if true, append to existing file
+//' @param remove if true, unlink the tracing file
+//' 
+//' @details
+//' PostgeSQL tracing lets you observe all information
+//' passing between \code{ezpg} and the database server.
+//' 
+//' \code{trace_conn} begins tracing and \code{untrace_conn}
+//' stops tracing.
+//' 
+//' @author Timothy H. Keitt
+//' 
+//' @examples
+//' \dontrun{
+//' connect()
+//' trace_conn()
+//' list_tables()
+//' dump_conn_trace(n = 10)
+//' untrace_conn(remove = TRUE)}
+//' @rdname tracing
 //' @export
 // [[Rcpp::export]]
 void trace_conn(const char* filename = "", bool append = false)
@@ -219,6 +255,7 @@ void trace_conn(const char* filename = "", bool append = false)
   PQtrace(conn, tracef);
 }
 
+//' @rdname tracing
 //' @export
 // [[Rcpp::export]]
 void untrace_conn(bool remove = false)
@@ -227,6 +264,10 @@ void untrace_conn(bool remove = false)
   clear_tracef();
 }
 
+//' @return \code{get_trace_filename}: the name of the file containing
+//' trace information.
+//' 
+//' @rdname tracing
 //' @export
 // [[Rcpp::export]]
 const char* get_trace_filename()
@@ -235,4 +276,31 @@ const char* get_trace_filename()
   // is a good bet it will soon be read
   if ( tracef ) fflush(tracef);
   return tracefname;
+}
+
+//' @details \code{get_conn_defaults} returns a data frame containing
+//' all of the possible connection string keywords, the names of environment
+//' variables used to override the defaults, the compiled in default value
+//' and the current value of the keyword.
+//' @return \code{get_conn_defaults}: a data frame with defaults listed
+//' @rdname connection
+//' @export
+// [[Rcpp::export]]
+DataFrame get_conn_defaults()
+{
+  std::vector<std::string> kw, ev, cp, va;
+  PQconninfoOption *defs = PQconndefaults(), *i = defs;
+  while ( i && i->keyword )
+  {
+        kw.push_back(i->keyword);
+        ev.push_back(i->envvar ? i->envvar : "");
+        cp.push_back(i->compiled ? i->compiled : "");
+        va.push_back(i->val ? i->val : "");
+        ++i;
+  }
+  PQconninfoFree(defs);
+  return DataFrame::create(Named("keyword") = kw,
+                           Named("envvar") = ev,
+                           Named("compiled") = cp,
+                           Named("value") = va);
 }

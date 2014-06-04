@@ -1,8 +1,9 @@
 get_pg_type = function(x)
 {
   switch(class(x),
-         integer = "integer",
-         double = "double precision",
+         numeric = switch(typeof(x),
+                          integer = "integer",
+                          "double precision"),
          logical = "boolean",
          Date = "date",
          "text")
@@ -15,20 +16,20 @@ get_pg_type = function(x)
 }
 
 #' @export
-print.conn.info = function(x)
+print.conn.info = function(x, ...)
 {
-  print(as.matrix(unclass(x)))
+  print(as.matrix(unclass(x)), ...)
 }
 
 #' @export
-print.pq.error.message = function(x)
+print.pq.error.message = function(x, ...)
 {
   cat(x)
   invisible(x)
 }
 
 #' @export
-print.pq.status = function(x)
+print.pq.status = function(x, ...)
 {
   if ( getOption("verbose") ) cat(x, "\n")
   cat(attr(x, "error.message"))
@@ -57,4 +58,39 @@ format_dates = function(x)
   i = sapply(x, f)
   x[, i] = format(x[, i])
   x
+}
+
+set_schema = function(a, b)
+{
+  if ( !is.null(b) )
+    a = paste(dquote_esc(b), tablename, sep = ".")
+  return(a)
+}
+
+handle_row_names = function(a, b)
+{
+  if ( !is.null(b) )
+  {
+    a = data.frame(row.names(a), a, stringsAsFactors = FALSE)
+    names(a)[1] = b
+  }
+  return(a)
+}
+
+get_primary_key_name = function(tablename)
+{
+  unlist(fetch("SELECT               
+                  pg_attribute.attname as pkey
+                FROM
+                  pg_index, pg_class, pg_attribute 
+                WHERE
+                  pg_class.oid = $1::regclass
+                AND
+                  indrelid = pg_class.oid
+                AND
+                  pg_attribute.attrelid = pg_class.oid
+                AND 
+                  pg_attribute.attnum = any(pg_index.indkey)
+                AND
+                  indisprimary", tablename))
 }

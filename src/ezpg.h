@@ -22,7 +22,6 @@ static void clear_tracef()
   PQuntrace(conn);
   if ( tracef ) fclose(tracef);
   tracef = NULL;
-  tracefname = NULL;
 }
 
 static void clear_conn()
@@ -46,20 +45,22 @@ static void setup_connection(const char* opts = "")
     PQsetNoticeProcessor(conn, ezpg_notice_processor, NULL);
 }
 
-static void check_conn(const char* opts = "")
+static void check_conn()
 {
   if ( PQstatus(conn) == CONNECTION_BAD )
   {
+    Rcout << "No connection... attempting reset... ";
     PQreset(conn);
-    Rf_warning("No database connection; attempting reset");
+    if ( PQstatus(conn) == CONNECTION_BAD )
+    {
+      Rcout << "nope... trying default... ";
+      setup_connection("");
+    }
+    if ( PQstatus(conn) == CONNECTION_BAD )
+      Rcout << "connection failed (try ping)." << std::endl;
+    else
+      Rcout << "that worked." << std::endl;
   }
-  if ( PQstatus(conn) == CONNECTION_BAD )
-  {
-    setup_connection(opts);
-    Rf_warning("Attempting to connect to default database");
-  }
-  if ( PQstatus(conn) == CONNECTION_BAD )
-     Rf_warning("Connection failed");
 }
 
 static SEXP wrap_string(const char* s)
@@ -67,21 +68,24 @@ static SEXP wrap_string(const char* s)
   return s ? wrap(std::string(s)) : R_NilValue;
 }
 
-static CharacterVector connection_status_string()
+static SEXP connection_status_string()
 {
-  ConnStatusType status = PQstatus(conn);
-  if ( status == CONNECTION_OK ) return "CONNECTION_OK";
-  return "CONNECTION_BAD";
+  switch ( PQstatus(conn) )
+  {
+    case CONNECTION_OK: return wrap("CONNECTION_OK");
+    default:            return wrap("CONNECTION_BAD");
+  }
 }
 
-static CharacterVector ping_status_string(const char* opts)
+static SEXP ping_status_string(const char* opts)
 {
-  PGPing status = PQping(opts);
-  if ( status == PQPING_OK ) return "PQPING_OK";
-  if ( status == PQPING_REJECT ) return "PQPING_REJECT";
-  if ( status == PQPING_NO_RESPONSE ) return "PQPING_NO_RESPONSE";
-  if ( status == PQPING_NO_ATTEMPT ) return "PQPING_NO_ATTEMPT";
-  return "Ping returned an unknown status code";
+  switch ( PQping(opts) )
+  {
+    case PQPING_OK:          return wrap("PQPING_OK");
+    case PQPING_REJECT:      return wrap("PQPING_REJECT");
+    case PQPING_NO_RESPONSE: return wrap("PQPING_NO_RESPONSE");
+    default:                 return wrap("PQPING_NO_ATTEMPT");
+  }
 }
 
 static CharacterVector connection_error_string()
@@ -91,15 +95,14 @@ static CharacterVector connection_error_string()
 
 static SEXP trasaction_status_string()
 {
-  if ( PQstatus(conn) == CONNECTION_BAD ) return R_NilValue;
-  PGTransactionStatusType status = PQtransactionStatus(conn);
-  std::string out("");
-  if ( status == PQTRANS_IDLE ) out = "PQTRANS_IDLE";
-  if ( status == PQTRANS_ACTIVE )  out = "PQTRANS_ACTIVE";
-  if ( PQTRANS_INTRANS ) out = "PQTRANS_INTRANS";
-  if ( PQTRANS_INERROR ) out = "PQTRANS_INERROR";
-  if ( PQTRANS_UNKNOWN ) out =  "PQTRANS_UNKNOWN";
-  return wrap(out);
+  switch ( PQtransactionStatus(conn) )
+  {
+    case PQTRANS_IDLE:    return wrap("PQTRANS_IDLE");
+    case PQTRANS_ACTIVE:  return wrap("PQTRANS_ACTIVE");
+    case PQTRANS_INTRANS: return wrap("PQTRANS_INTRANS");
+    case PQTRANS_INERROR: return wrap("PQTRANS_INERROR");
+    default:              return wrap("PQTRANS_UNKNOWN");
+  }
 }
 
 static SEXP fetch_par(const char* par)
