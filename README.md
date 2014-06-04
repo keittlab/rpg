@@ -11,7 +11,7 @@ I am working on some advanced features like binary cursors.
 
 # Installation
 
-You wil need to install libpq as a requirement. The configure step will call pg_config.
+You wil need to install [libpq](http://www.postgresql.org/download/) as a requirement. The configure step will call pg_config.
 If typing system("pg_config --version") in R does not return anything, then this package will likely not install.
 
 install.packages(c("devtools", "Rcpp", "roxygen2"))
