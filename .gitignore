@@ -8,4 +8,4 @@ NAMESPACE
 man/*.Rd
 src/RcppExports.cpp
 R/RcppExports.R
-
+.DS_Store

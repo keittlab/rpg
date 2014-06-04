@@ -87,7 +87,7 @@ write_table = function(x,
 #' @export
 read_table = function(tablename, what = "*", row_names = NULL)
 {
-  tablename = paste0(paste0("\"", tablename), "\"")
+  tablename = dquote_esc(tablename)
   res = fetch(paste("select", what, "from", tablename))
   if ( !is.null(row_names) )
   {

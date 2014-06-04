@@ -231,5 +231,8 @@ void untrace_conn(bool remove = false)
 // [[Rcpp::export]]
 const char* get_trace_filename()
 {
+  // I figure asking for the file name
+  // is a good bet it will soon be read
+  if ( tracef ) fflush(tracef);
   return tracefname;
 }
