@@ -13,4 +13,4 @@ To install, paste into R:
 
 install.packages(c("devtools", "Rcpp", "roxygen2"))
 
-devtools::github_install("ezpg", "thk686")
+devtools::install_github("ezpg", "thk686")
