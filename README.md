@@ -23,7 +23,7 @@ system("pg_config --version")
 in R does not return anything, then this package will likely not install. To install in R, try
 
 ```
-install.packages(c("devtools", "Rcpp", "roxygen2"))
+invisible(lapply(c("devtools", "Rcpp", "roxygen2"), function(x) require(x) || install.packages(x)))
 devtools::install_github("ezpg", "thk686")
 ```
 
