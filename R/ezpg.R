@@ -1,13 +1,47 @@
+#' @name ezpg-package
+#' @aliases ezpg-package, ezpg
+#' @docType package
+#' @title Easy access to a PostgreSQL database
+#' @description
+#' Provides functions for connecting to, reading from and writing to a PostgreSQL
+#' database. Facilities for tracing the communication between R and PostgreSQL are
+#' provided, as are function to retieve detailed session metadata.
+#' @details
+#' \tabular{ll}{
+#' Package: \tab ezpg\cr
+#' Type: \tab Package\cr
+#' Version: \tab 0.1\cr
+#' Date: \tab 2013-6-4\cr
+#' License: \tab GPL \cr
+#' }
+#' The main functions are \code{connect}, which establishes a connection,
+#' \code{query}, which issues queries and \code{fetch}, which retieves results.
+#' Intelligent defaults are used throughout. Functions that require a connection
+#' will automatically attempt to establish a valid connection based on a previous
+#' connection or from defaults. The defaults can be overriden in a variety of
+#' ways.
+#' @author
+#' Timothy H. Keitt \cr \url{http://www.keittlab.org/} \cr \cr
+#' Maintainer: Timothy H. Keitt \email{tkeitt@@gmail.com} \cr
+#' @references \url{http://github.com/thk686/ezpg}, \url{http://www.postgresql.org/}
+#' @keywords package
 #' @import Rcpp
 #' @useDynLib ezpg
 NULL
 
-#' @details \code{fetch} returns the result of the query as a data frame.
+#' @details \code{fetch} returns the result of a query as a data frame. If
+#' \code{sql} is \code{NULL} or empty, then an attempt will be made to retrieve
+#' any pending resutls from previous queries. Note that query results are not
+#' cleared until the next query is issued so \code{fetch} will continue to
+#' return results until a new query is issued.
+#' 
 #' @return \code{fetch} returns a data frame or a query status object on failure.
 #' @rdname query
 #' @export
 fetch = function(sql = "", pars = NULL)
 {
+  if ( is.null(sql) || nchar(sql) < 1 )
+    return(fetch_dataframe())
   res = query(sql, pars)
   if ( res == "PGRES_TUPLES_OK" )
     fetch_dataframe()
@@ -225,15 +259,13 @@ read_table = function(tablename,
   res
 }
 
-#' @rdname tracing
-#' @export
-#' 
 #' @param ... passed to \code{\link{readLines}}
 #' 
 #' @details \code{dump_conn_trace} invokes \code{\link{readLines}} on
 #' the trace file.
 #' 
-#' @author Timothy H. Keitt
+#' @rdname tracing
+#' @export 
 dump_conn_trace = function(...)
 {
   con = get_trace_filename()
