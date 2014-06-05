@@ -19,19 +19,33 @@ fetch = function(sql = "", pars = NULL)
 #' Get information about tables in a database
 #' 
 #' @param only.names if true, just list the table names
-#' @param no.postgres if true, exclude tables owned by the postgres role
 #' 
 #' @return \code{list_tables} a list of table names
 #' 
 #' @author Timothy H. Keitt
 #' @rdname table-info
 #' @export
-list_tables = function(only.names = TRUE, no.postgres = TRUE)
+list_tables = function(only.names = TRUE)
 {
-  query = paste("select", ifelse(only.names, "tablename", "*"))
-  query = paste(query, "from pg_tables where tableowner not in ($1)")
-  res = fetch(query, ifelse(no.postgres, "postgres", ""))
-  if ( only.names && length(res) > 0 ) return(res[[1]])
+  res = fetch("SELECT n.nspname as \"Schema\", c.relname as \"Name\",
+                CASE c.relkind
+                  WHEN \'r\' THEN \'table\'
+                  WHEN \'v\' THEN \'view\'
+                  WHEN \'i\' THEN \'index\'
+                  WHEN \'s\' THEN \'special\'
+                  WHEN \'f\' THEN \'foreign table\'
+                END as \"Type\",
+                pg_catalog.pg_get_userbyid(c.relowner) as \"Owner\"
+               FROM pg_catalog.pg_class c
+               LEFT JOIN pg_catalog.pg_namespace n
+               ON n.oid = c.relnamespace
+               WHERE c.relkind IN (\'r\',\'v\',\'f\',\'\')
+               AND n.nspname <> \'pg_catalog\'
+               AND n.nspname <> \'information_schema\'
+               AND n.nspname !~ \'^pg_toast\'
+               AND pg_catalog.pg_table_is_visible(c.oid)
+               ORDER BY 1,2")
+  if ( only.names && length(res) > 0 ) return(res[[2]])
   res
 }
 
