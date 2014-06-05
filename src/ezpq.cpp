@@ -304,3 +304,21 @@ DataFrame get_conn_defaults()
                            Named("compiled") = cp,
                            Named("value") = va);
 }
+
+// [[Rcpp::export]]
+CharacterVector check_transaction()
+{
+  check_conn();
+  switch ( PQtransactionStatus(conn)  )
+  {
+    case PQTRANS_INERROR:
+      Rcout << "Error in current transaction: rolling back... done." << std::endl;
+      query("rollback");
+    case PQTRANS_IDLE:
+      Rcout << "Initiating new transaction block... done." << std::endl;
+      return query("begin");
+    default:
+      return NA_STRING;
+  }
+  return NA_STRING; // compiler warning
+}

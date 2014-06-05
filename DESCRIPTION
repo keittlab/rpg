@@ -9,7 +9,8 @@ Description: Allows adhoc queries and reading and
     writing data frames to and from a database.
 License: GPL
 Imports:
-    Rcpp (>= 0.11.1)
+    Rcpp (>= 0.11.1),
+    uuid (>= 0.1-1)
 LinkingTo: Rcpp
 SystemRequirements: libpq
 Depends:

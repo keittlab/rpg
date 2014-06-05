@@ -1,5 +1,5 @@
 #' @name ezpg-package
-#' @aliases ezpg-package, ezpg
+#' @aliases ezpg
 #' @docType package
 #' @title Easy access to a PostgreSQL database
 #' @description
@@ -243,6 +243,7 @@ read_table = function(tablename,
                       schema = NULL,
                       pkey_to_row_names = FALSE)
 {
+  tablename = deparse(substitute(tablename))
   tablename = dquote_esc(tablename)
   tablename = set_schema(tablename, schema)
   sql = paste("select", what, "from", tablename)
@@ -271,4 +272,21 @@ dump_conn_trace = function(...)
   con = get_trace_filename()
   if ( is.null(con) || file.access(con, 4) == -1 ) return(NULL)
   readLines(con, ...)
+}
+
+#' @export
+cursor = function(sql, by = 1)
+{
+  check_transaction();
+  cname = get_unique_name();
+  status = query(paste("declare", cname, "cursor for", sql))
+  if ( status != "PGRES_COMMAND_OK" ) return(status)
+  f = function()
+  {
+    res = fetch(paste("fetch", by, "from", cname))
+    if ( inherits(res, "pq.status") ) stop(res)
+    if ( length(res) < 1 ) stop("StopIteration")
+    return(res)
+  }
+  structure(list(nextElem = f), class = c('cursor', 'abstractiter', 'iter'))
 }

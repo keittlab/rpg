@@ -94,3 +94,13 @@ get_primary_key_name = function(tablename)
                 AND
                   indisprimary", tablename))
 }
+
+get_unique_name = function()
+{
+  dquote_esc(uuid::UUIDgenerate())
+}
+
+called_from_globalenv = function()
+{
+  parent.env(parent.env(environment())) == globalenv()
+}
