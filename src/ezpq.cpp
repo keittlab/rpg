@@ -305,6 +305,63 @@ DataFrame get_conn_defaults()
                            Named("value") = va);
 }
 
+//' Miscelaneous functions
+//' 
+//' Various utility functions
+//' 
+//' @author Timothy H. Keitt
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+int libpq_version()
+{
+  return PQlibVersion();
+}
+
+//' @param passwd the password
+//' @param user the user name
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+const char* encrypt_password(const char* passwd, const char* user)
+{
+  return PQencryptPassword(passwd, user);
+}
+
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+const char* get_encoding()
+{
+  check_conn();
+  return pg_encoding_to_char(PQclientEncoding(conn));
+}
+
+//' @param encoding the character encoding
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+bool set_encoding(const char* encoding)
+{
+  check_conn();
+  return PQsetClientEncoding(conn, encoding) == 0;
+}
+
+//' @param verbosity one of "terse", "default", "verbose"
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+void set_error_verbosity(std::string verbosity)
+{
+  check_conn();
+  if ( verbosity.compare("terse") == 0 )
+    PQsetErrorVerbosity(conn, PQERRORS_TERSE);
+  if ( verbosity.compare("default") == 0 )
+    PQsetErrorVerbosity(conn, PQERRORS_DEFAULT);
+  if ( verbosity.compare("verbose") == 0 )
+    PQsetErrorVerbosity(conn, PQERRORS_VERBOSE);
+}
+
 // [[Rcpp::export]]
 CharacterVector check_transaction()
 {

@@ -281,6 +281,13 @@ dump_conn_trace = function(...)
 #' @param sql any valid query returning rows
 #' @param by how many rows to return each iteration
 #' 
+#' @details This function generates an interator object that can be used with
+#' the \code{\link{foreach-package}}.
+#' 
+#' Do not use this with the \code{\link{\%dopar\%}} operator. You must call
+#' \code{\link{connect}} explicitely on each node. You can then do whatever
+#' you want in terms of breaking up a query into pieces manually.
+#' 
 #' @examples
 #' \dontrun{
 #' data(mtcars)
