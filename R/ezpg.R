@@ -274,13 +274,30 @@ dump_conn_trace = function(...)
   readLines(con, ...)
 }
 
+#' Iterator support
+#' 
+#' Construct a row iterator
+#' 
+#' @param sql any valid query returning rows
+#' @param by how many rows to return each iteration
+#' 
+#' @examples
+#' \dontrun{
+#' data(mtcars)
+#' write_table(mtcars, overwrite = TRUE)
+#' foreach(i = cursor("select * from mtcars", 2),
+#'         .combine = rbind) %do% { i$mpg }}
+#' 
+#' @seealso \code{\link{foreach}}
+#' 
+#' @author Timothy H. Keitt
 #' @export
 cursor = function(sql, by = 1)
 {
   check_transaction();
   cname = get_unique_name();
   status = query(paste("declare", cname, "cursor for", sql))
-  if ( status != "PGRES_COMMAND_OK" ) return(status)
+  if ( status != "PGRES_COMMAND_OK" ) stop(status)
   f = function()
   {
     res = fetch(paste("fetch", by, "from", cname))
