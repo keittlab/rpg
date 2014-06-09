@@ -273,6 +273,7 @@ dump_conn_trace = function(...)
   if ( is.null(con) || file.access(con, 4) == -1 ) return(NULL)
   out = readLines(con, ...)
   class(out) = "pg.trace.dump"
+  return(out)
 }
 
 #' @export
