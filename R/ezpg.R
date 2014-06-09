@@ -271,7 +271,15 @@ dump_conn_trace = function(...)
 {
   con = get_trace_filename()
   if ( is.null(con) || file.access(con, 4) == -1 ) return(NULL)
-  readLines(con, ...)
+  out = readLines(con, ...)
+  class(out) = "pg.trace.dump"
+}
+
+#' @export
+print.pg.trace.dump = function(x, ...)
+{
+  cat(x, sep = "\n", ...)
+  invisible(x)
 }
 
 #' Iterator support
