@@ -43,13 +43,7 @@ as.csv = function(...)
 
 dquote_esc = function(...)
 {
-  paste0(paste0("\"", ...), "\"")
-}
-
-squote_esc = function(x)
-{
-  qs = paste0("\\", "\'")
-  paste0(paste0(qs, x), qs)
+  gsub("\"\"", "\"",  paste0(paste0("\"", ...), "\""))
 }
 
 format_dates = function(x)

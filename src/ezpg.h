@@ -24,12 +24,15 @@ static void clear_tracef()
   tracef = NULL;
 }
 
-static void clear_conn()
+static void cancel()
 {
-  clear_res();
-  clear_tracef();
-  PQfinish(conn);
-  conn = NULL;
+  Rcout << "Calling PQcancel... " << std::flush;
+  char buff[256];
+  PGcancel *obj = PQgetCancel(conn);
+  int i = PQcancel(obj, buff, 256);
+  PQfreeCancel(obj);
+  if ( i ) Rcout << "success." << std::endl;
+  else Rcout << "failed." << std::endl;
 }
 
 static void
@@ -61,6 +64,14 @@ static void check_conn()
     else
       Rcout << "that worked." << std::endl;
   }
+}
+
+static void clear_conn()
+{
+  clear_res();
+  clear_tracef();
+  PQfinish(conn);
+  conn = NULL;
 }
 
 static SEXP wrap_string(const char* s)

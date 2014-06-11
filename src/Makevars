@@ -1,3 +1,2 @@
 PKG_CPPFLAGS=-I`pg_config --includedir`
 PKG_LIBS=-L`pg_config --libdir` -lpq
-

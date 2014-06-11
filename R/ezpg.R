@@ -224,7 +224,11 @@ write_table = function(x,
     sqlpars = as.csv(sqlpars)
     sql = paste("insert into", tablename, "(", colnames, ")")
     sql = paste(sql, "values (", sqlpars, ")")
-    for ( i in 1:nrow(x) ) status = query(sql, x[i,])
+    for ( i in 1:nrow(x) )
+    {
+      status = query(sql, x[i,])
+      if ( status != "PGRES_COMMAND_OK" ) break;
+    }
   }
   return(status)
 }
