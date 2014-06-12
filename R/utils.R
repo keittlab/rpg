@@ -28,11 +28,19 @@ print.pq.error.message = function(x, ...)
   invisible(x)
 }
 
+print.message = function(x, terminate = "\n")
+{
+  if ( !is.null(x) && nchar(x) > 0 )
+    cat(x, terminate)
+  invisible(x)
+}
+
 #' @export
 print.pq.status = function(x, ...)
 {
-  if ( getOption("verbose") ) cat(x, "\n")
-  cat(attr(x, "error.message"))
+  if ( getOption("verbose") ) print.message(x)
+  print.message(attr(x, "command.status"))
+  print.message(attr(x, "error.message"))
   invisible(x)
 }
 
@@ -94,7 +102,17 @@ get_unique_name = function()
   dquote_esc(uuid::UUIDgenerate())
 }
 
-called_from_globalenv = function()
+table_exists = function(table, schema = NULL)
 {
-  parent.env(parent.env(environment())) == globalenv()
+  sql = "select count(*) > 0 from pg_catalog.pg_tables"
+  if ( is.null(schema) )
+    sql = paste(sql, "where tablename = $1")
+  else
+    sql = paste(sql, "where tablename = $1 and schemaname = $2")
+  fetch(sql, strip_quotes(c(table, schema)))[[1]]
+}
+
+strip_quotes = function(x)
+{
+  gsub("\"", "", x)
 }

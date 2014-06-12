@@ -168,6 +168,7 @@ CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
   else res = PQexec(conn, sql);
   CharacterVector out(PQresStatus(PQresultStatus(res)));
   out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
+  out.attr("command.status") = wrap_string(PQcmdStatus(res));
   out.attr("class") = "pq.status";
   return out;
 }

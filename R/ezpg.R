@@ -1,3 +1,4 @@
+
 #' @name ezpg-package
 #' @aliases ezpg
 #' @docType package
@@ -112,7 +113,7 @@ describe_table = function(tablename)
 #' @param tablename the name of the table to read from or write to
 #' @param pkey a column name to use as primary key
 #' @param row_names a column name to write row names
-#' @param schema the schema name
+#' @param schemaname the schema name
 #' @param types a list of valid PostgreSQL type names
 #' @param overwrite if true, destroy existing table with the same name
 #' 
@@ -138,17 +139,21 @@ describe_table = function(tablename)
 #' 
 #' @return \code{write_table} the final query status
 #' 
+#' @note The entire process is wrapped within a transcation. On failure
+#' at any point, the transaction will be rolled back and the database
+#' unaffected.
+#' 
 #' @author Timothy H. Keitt
 #' 
 #' @examples
 #' \dontrun{
+#' # make a database and connect
+#' system("createdb -w -e ezpgtestingdb")
+#' connect("dbname = ezpgtestingdb")
+#' 
+#' # write data frame contents
 #' data(mtcars)
-#' 
-#' # default connection
-#' connect()
-#' 
-#' # just the columns
-#' write_table(mtcars, overwrite = T)
+#' write_table(mtcars)
 #' 
 #' # make "cyl" primary key (will fail unique constraint)
 #' write_table(mtcars, pkey = "cyl", overwrite = T)
@@ -167,13 +172,18 @@ describe_table = function(tablename)
 #' 
 #' # get row names from primary key
 #' read_table("mtcars", pkey_to_row_names = T, limit = 3)}
+#' 
+#' # drop the database
+#' disconnect()
+#' system("dropdb -w -e ezpgtestingdb")
+#' 
 #' @rdname table-io
 #' @export
 write_table = function(x,
                        tablename,
                        pkey = NULL,
                        row_names = NULL,
-                       schema = NULL,
+                       schemaname = NULL,
                        types = NULL,
                        overwrite = FALSE)
 {
@@ -181,8 +191,9 @@ write_table = function(x,
     tablename = deparse(substitute(x))
   x = as.data.frame(x, stringsAsFactors = FALSE)
   if ( prod(dim(x)) < 1 ) stop("Empty input")
+  exists_in_db = table_exists(tablename, schemaname)
   tablename = dquote_esc(tablename)
-  tablename = set_schema(tablename, schema)
+  tablename = set_schema(tablename, schemaname)
   x = handle_row_names(x, row_names)
   colnames = make.unique(names(x), "")
   if ( is.null(types) )
@@ -213,7 +224,7 @@ write_table = function(x,
   colnames = as.csv(colnames)
   query("begin")
   on.exit(query("commit"))
-  if ( overwrite )
+  if ( overwrite && exists_in_db )
     query(paste("drop table", tablename))
   sql = paste("create table", tablename, "(", types, ")")
   status = query(sql)
@@ -226,8 +237,8 @@ write_table = function(x,
     sql = paste(sql, "values (", sqlpars, ")")
     for ( i in 1:nrow(x) )
     {
-      status = query(sql, x[i,])
-      if ( status != "PGRES_COMMAND_OK" ) break;
+      istatus = query(sql, x[i,])
+      if ( istatus != "PGRES_COMMAND_OK" ) return(istatus);
     }
   }
   return(status)
@@ -244,12 +255,12 @@ read_table = function(tablename,
                       what = "*",
                       limit = NULL,
                       row_names = NULL,
-                      schema = NULL,
+                      schemaname = NULL,
                       pkey_to_row_names = FALSE)
 {
   tablename = deparse(substitute(tablename))
   tablename = dquote_esc(tablename)
-  tablename = set_schema(tablename, schema)
+  tablename = set_schema(tablename, schemaname)
   sql = paste("select", what, "from", tablename)
   if ( !is.null(limit) ) sql = paste(sql, "limit", limit)
   res = fetch(sql)
