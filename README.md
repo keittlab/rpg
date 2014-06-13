@@ -49,6 +49,16 @@ package.
 Here neither the client nor the server deals with more than three rows of results
 at a time. This allows incremental processing of massive tables.
 
+4. Simple access to execution of prepared statements.
+    ````
+    library(ezpg)
+    prepare("insert into mytab (a, b, c) values ($1, $2, $3)")
+    params = matrix(rnorm(300), 100)
+    execute(params)
+    ````
+The call to `execute` evalutes the prepared statement for each row of the
+supplied parameters. This evaluation loop is in C++.
+
 Installation
 ------------
 
