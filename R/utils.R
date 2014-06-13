@@ -38,7 +38,8 @@ print.message = function(x, terminate = "\n")
 #' @export
 print.pq.status = function(x, ...)
 {
-  if ( getOption("verbose") ) print.message(x)
+  if ( getOption("verbose") || 
+       x == "PGRES_FATAL_ERROR" ) print.message(x)
   print.message(attr(x, "command.status"))
   print.message(attr(x, "error.message"))
   invisible(x)

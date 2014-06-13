@@ -162,15 +162,11 @@ SEXP get_conn_info()
 // [[Rcpp::export]]
 CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
 {
-  clear_res(); check_conn();
+  check_conn();
   if ( PQprotocolVersion(conn) > 2 && ! Rf_isNull(pars) )
     exec_params(sql, pars);
-  else res = PQexec(conn, sql);
-  CharacterVector out(PQresStatus(PQresultStatus(res)));
-  out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
-  out.attr("command.status") = wrap_string(PQcmdStatus(res));
-  out.attr("class") = "pq.status";
-  return out;
+  else set_res(PQexec(conn, sql));
+  return get_result_status();
 }
 
 //' @return \code{get_query_error} returns an error string
@@ -380,3 +376,23 @@ CharacterVector check_transaction()
   }
   return NA_STRING; // compiler warning
 }
+
+//' @export
+// [[Rcpp::export]]
+CharacterVector prepare(const char* sql, const char* name = "")
+{
+  check_conn();
+  set_res(PQprepare(conn, name, sql, 0, NULL));
+  return get_result_status();  
+}
+
+//' @export
+// [[Rcpp::export]]
+SEXP execute(CharacterVector pars, const char* name = "")
+{
+  exec_prepared(pars, name);
+  if ( PQresultStatus(res) == PGRES_TUPLES_OK )
+    return wrap(fetch_dataframe());
+  return get_result_status();
+}
+

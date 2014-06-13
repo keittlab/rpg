@@ -17,11 +17,25 @@ static void clear_res()
   res = NULL;
 }
 
+static void set_res(PGresult* x)
+{
+  PQclear(res);
+  res = x;
+}
+  
 static void clear_tracef()
 {
   PQuntrace(conn);
   if ( tracef ) fclose(tracef);
   tracef = NULL;
+}
+
+static std::vector<const char*>
+charvec_to_vec_char(CharacterVector x)
+{
+  std::vector<const char*> out(x.size());
+  for ( int i = 0; i < x.size(); ++i ) out[i] = CHAR(x[i]);
+  return out;
 }
 
 static void cancel()
@@ -139,7 +153,13 @@ static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
 static void exec_params(const char* sql = "", SEXP pars = R_NilValue)
 {
   std::vector<const char*> vals = c_str_vec_from_sexp(pars);
-  res = PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0);  
+  set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
+}
+
+static void exec_prepared(CharacterVector pars, const char* name = "")
+{
+  std::vector<const char*> vals = charvec_to_vec_char(pars);
+  set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0)); 
 }
 
 static SEXP fetch_string(int row = 0, int col = 0)
@@ -228,6 +248,15 @@ static const char* tempfile()
 {
   Function tf("tempfile");
   return as<const char*>(tf());
+}
+
+CharacterVector get_result_status()
+{
+  CharacterVector out(PQresStatus(PQresultStatus(res)));
+  out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
+  out.attr("command.status") = wrap_string(PQcmdStatus(res));
+  out.attr("class") = "pq.status";
+  return out;
 }
 
 #endif // __EZPG_H__

@@ -223,7 +223,7 @@ write_table = function(x,
   types = as.csv(types)
   colnames = as.csv(colnames)
   query("begin")
-  on.exit(query("commit"))
+  on.exit(query("end"))
   if ( overwrite && exists_in_db )
     query(paste("drop table", tablename))
   sql = paste("create table", tablename, "(", types, ")")
