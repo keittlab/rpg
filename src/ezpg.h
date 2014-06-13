@@ -30,14 +30,6 @@ static void clear_tracef()
   tracef = NULL;
 }
 
-static std::vector<const char*>
-charvec_to_vec_char(CharacterVector x)
-{
-  std::vector<const char*> out(x.size());
-  for ( int i = 0; i < x.size(); ++i ) out[i] = CHAR(x[i]);
-  return out;
-}
-
 static void cancel()
 {
   Rcout << "Calling PQcancel... " << std::flush;
@@ -156,10 +148,29 @@ static void exec_params(const char* sql = "", SEXP pars = R_NilValue)
   set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
 }
 
+static std::vector<const char*>
+charvec_to_vec_char(CharacterVector x)
+{
+  std::vector<const char*> out(x.size());
+  for ( int i = 0; i < x.size(); ++i ) out[i] = CHAR(x[i]);
+  return out;
+}
+
 static void exec_prepared(CharacterVector pars, const char* name = "")
 {
   std::vector<const char*> vals = charvec_to_vec_char(pars);
   set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0)); 
+}
+
+static void exec_prepared_rows(CharacterMatrix pars, const char* name = "")
+{
+  for ( int i = 0; i < pars.nrow(); ++i )
+  {
+    CharacterVector row = pars.row(i);
+    std::vector<const char*> vals = charvec_to_vec_char(row);
+    set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0));
+    if ( PQresultStatus(res) == PGRES_FATAL_ERROR ) return;
+  }
 }
 
 static SEXP fetch_string(int row = 0, int col = 0)

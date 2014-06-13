@@ -235,11 +235,11 @@ write_table = function(x,
     sqlpars = as.csv(sqlpars)
     sql = paste("insert into", tablename, "(", colnames, ")")
     sql = paste(sql, "values (", sqlpars, ")")
-    for ( i in 1:nrow(x) )
-    {
-      istatus = query(sql, x[i,])
-      if ( istatus != "PGRES_COMMAND_OK" ) return(istatus);
-    }
+    ssname = get_unique_name()
+    pstatus = prepare(sql, ssname)
+    if ( pstatus == "PGRES_FATAL_ERROR" ) return(pstatus)
+    estatus = execute(x, ssname)
+    if ( estatus == "PGRES_FATAL_ERROR" ) return(estatus)
   }
   return(status)
 }
@@ -337,4 +337,17 @@ cursor = function(sql, by = 1)
     return(res)
   }
   structure(list(nextElem = f), class = c('cursor', 'abstractiter', 'iter'))
+}
+
+#' @param x parameter values
+#' @rdname prepare
+#' @export
+execute = function(x, name = "")
+{
+  x = as.matrix(x)
+  cols = num_prepared_params(name)
+  rows = ceiling(length(x) / cols)
+  dim(x) = c(rows, cols)
+  storage.mode(x) = "character"
+  execute_(x, name)
 }

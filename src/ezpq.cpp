@@ -377,6 +377,62 @@ CharacterVector check_transaction()
   return NA_STRING; // compiler warning
 }
 
+//' Prepared queries
+//' 
+//' Prepare and execute queries
+//' 
+//' @param sql a valid query string
+//' @param name an optional statement name
+//' 
+//' @details These functions allow the preparation of an incomplete
+//' SQL statement and then application of that statement to a arrays
+//' of input parameters.
+//' 
+//' If the number of parameters supplied to \code{execute} is a
+//' multiple of the number of open parameters in query prepared
+//' using \code{prepare}, then the prepared query will be executed
+//' repeatedly for each successive set of parameters. This repeated
+//' execution loop is evaluted in C++ and so is quite fast. The
+//' supplied parameter values will be coerced to a matrix of the
+//' appropriate dimensions. If the number of supplied parameter
+//' values is not an even multiple of the number of parameters
+//' specified in the prepared statement, an error will occur.
+//' The passed parameters will be coerced to character strings.
+//' 
+//' If you supply a \code{name}, then you must use the same name
+//' when calling \code{execute}. This allows multiple prepared queries.
+//' If you do not supply a name, each call to \code{prepare} will
+//' overwrite the previous prepared statement. The lifetime of
+//' a prepared statement is the lifetime of the current connection
+//' or transaction.
+//' 
+//' @author Timothy H. Keitt
+//' 
+//' @examples
+//' \dontrun{
+//' system("createdb -w -e ezpgtestingdb")
+//' connect("dbname = ezpgtestingdb")
+//' 
+//' # write data frame contents
+//' data(mtcars)
+//' write_table(mtcars)
+//' 
+//' # delete the rows
+//' query("truncate mtcars")
+//' read_table(mtcars)
+//' 
+//' # use prepare-execute to write rows
+//' pars = paste0("$", 1:11, collapse = ", ")
+//' sql = paste0("insert into mtcars values (", pars, ")", collapse = " ")
+//' prepare(sql, "test_statement")
+//' execute(mtcars, "test_statement")
+//' read_table(mtcars, limit = 5)
+//' 
+//' # drop the database
+//' disconnect()
+//' system("dropdb -w -e ezpgtestingdb")}
+//' 
+//' @rdname prepare
 //' @export
 // [[Rcpp::export]]
 CharacterVector prepare(const char* sql, const char* name = "")
@@ -386,13 +442,16 @@ CharacterVector prepare(const char* sql, const char* name = "")
   return get_result_status();  
 }
 
-//' @export
 // [[Rcpp::export]]
-SEXP execute(CharacterVector pars, const char* name = "")
+SEXP execute_(CharacterMatrix pars, const char* name = "")
 {
-  exec_prepared(pars, name);
-  if ( PQresultStatus(res) == PGRES_TUPLES_OK )
-    return wrap(fetch_dataframe());
+  exec_prepared_rows(pars, name);
   return get_result_status();
 }
 
+// [[Rcpp::export]]
+int num_prepared_params(const char* name = "")
+{
+  set_res(PQdescribePrepared(conn, name));
+  return PQnparams(res);
+}

@@ -35,13 +35,28 @@ print.message = function(x, terminate = "\n")
   invisible(x)
 }
 
+is_non_empty_string = function(x)
+{
+  if ( is.null(x) ) return(FALSE)
+  if ( nchar(x) < 1 ) return(FALSE)
+  return(TRUE)
+}
+
 #' @export
 print.pq.status = function(x, ...)
 {
-  if ( getOption("verbose") || 
-       x == "PGRES_FATAL_ERROR" ) print.message(x)
-  print.message(attr(x, "command.status"))
-  print.message(attr(x, "error.message"))
+  if ( getOption("verbose") ) print.message(x)
+  error.message = attr(x, "error.message")
+  if ( is_non_empty_string(error.message) )
+    print.message(error.message)
+  else
+  {
+    command.status = attr(x, "command.status")
+    if ( is_non_empty_string(command.status) )
+      print.message(command.status)
+    else if ( x == "PGRES_FATAL_ERROR" )
+      print.message(x)
+  }
   invisible(x)
 }
 
