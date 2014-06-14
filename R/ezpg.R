@@ -306,18 +306,71 @@ print.pg.trace.dump = function(x, ...)
 #' @param by how many rows to return each iteration
 #' 
 #' @details This function generates an interator object that can be used with
-#' the \code{\link{foreach-package}}.
+#' the \code{\link{foreach-package}}. It is possible to use the
+#' \code{\link{\%dopar\%}} operator as shown in the example below. You must
+#' establish a connection to the database on each node and in your current
+#' session because the call to \code{cursor} requires it. Note that the
+#' cursor\'s lifetime is the current transaction block, so if anything happens
+#' to the transaction or you call \code{END} or \code{ROLLBACK}, then the
+#' cursor will no longer function. Apparently a named SQL cursor is visible
+#' to any database session, as evidenced by the example below,
+#' even though it is declared within a transaction. This is not stated
+#' explicitely in the PostgreSQL documentation.
 #' 
-#' Do not use this with the \code{\link{\%dopar\%}} operator. You must call
-#' \code{\link{connect}} explicitely on each node. You can then do whatever
-#' you want in terms of breaking up a query into pieces manually.
-#' 
+#' @note Don't do parallel processing in RStudio.
+#'  
 #' @examples
 #' \dontrun{
+#' # example requires foreach
+#' if ( ! require(foreach, quietly = TRUE) )
+#'  stop("This example requires the \'foreach\' package")
+#' 
+#' # try connecting to default database
+#' if ( connect() == "CONNECTION_BAD" )
+#' {
+#'  system("createdb -w -e")
+#'  if ( connect() == "CONNECTION_BAD" )
+#'    stop("Cannot connect to database")
+#' }
+#' 
+#' # we'll rollback at the end
+#' query("begin")
+#' 
+#' # for kicks work in a schema
+#' query("drop schema if exists ezpgtesting cascade")
+#' query("create schema ezpgtesting")
+#' query("set search_path to ezpgtesting")
+#' 
+#' # write data frame contents
 #' data(mtcars)
 #' write_table(mtcars, overwrite = TRUE)
-#' foreach(i = cursor("select * from mtcars", 2),
-#'         .combine = rbind) %do% { i$mpg }}
+#' 
+#' # expand rows to columns 8 rows at a time
+#' x = foreach(i = cursor("select * from mtcars", 8),
+#'             .combine = rbind) %do% { i$mpg }
+#' print(x, digits = 2)
+#'         
+#' # parallel example
+#' if ( require(doParallel, quietly = TRUE) )
+#' {
+#'  # make the cluster
+#'  cl = makeCluster(2)
+#'  
+#'  # must connect to database on each node
+#'  clusterEvalQ(cl, { library(ezpg); connect() })
+#'  
+#'  # setup the dopar call
+#'  registerDoParallel(cl)
+#'  
+#'  # take column averages 8 rows at a time
+#'  curs1 = cursor("select * from mtcars", by = 8)
+#'  x = foreach(i = curs1, .combine = rbind) %dopar% apply(i, 2, mean)
+#'  print(x, digits = 2)
+#' }
+#'         
+#' # cleanup and disconnect
+#' query("rollback")
+#' disconnect()}
 #' 
 #' @seealso \code{\link{foreach}}
 #' 
@@ -351,3 +404,4 @@ execute = function(x, name = "")
   storage.mode(x) = "character"
   execute_(x, name)
 }
+

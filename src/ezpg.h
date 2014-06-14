@@ -6,6 +6,8 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+#include <cstring>
+
 static PGconn* conn = NULL;
 static PGresult* res = NULL;
 static const char* tracefname = NULL;
@@ -34,11 +36,13 @@ static void cancel()
 {
   Rcout << "Calling PQcancel... " << std::flush;
   char buff[256];
+  memset(buff, '\0', 256);
   PGcancel *obj = PQgetCancel(conn);
   int i = PQcancel(obj, buff, 256);
   PQfreeCancel(obj);
   if ( i ) Rcout << "success." << std::endl;
-  else Rcout << "failed." << std::endl;
+  else Rcout << "failed." << std::endl
+             << buff << std::endl;
 }
 
 static void
@@ -261,7 +265,7 @@ static const char* tempfile()
   return as<const char*>(tf());
 }
 
-CharacterVector get_result_status()
+static CharacterVector get_result_status()
 {
   CharacterVector out(PQresStatus(PQresultStatus(res)));
   out.attr("error.message") = wrap_string(PQresultErrorMessage(res));

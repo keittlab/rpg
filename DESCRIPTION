@@ -11,7 +11,10 @@ License: GPL
 Imports:
     Rcpp (>= 0.11.1),
     uuid (>= 0.1-1)
+Suggests:
+    foreach (>= 1.4.2),
+    doParallel (>= 1.0.0)
 LinkingTo: Rcpp
 SystemRequirements: libpq
 Depends:
-    R (>= 3.0.0)
+    R (>= 3.1.0)
