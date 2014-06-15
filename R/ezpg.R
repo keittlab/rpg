@@ -80,8 +80,10 @@ list_tables = function(only.names = TRUE)
                AND n.nspname !~ \'^pg_toast\'
                AND pg_catalog.pg_table_is_visible(c.oid)
                ORDER BY 1,2")
-  if ( only.names && length(res) > 0 ) return(res[[2]])
-  res
+  if ( length(res) < 1 ) return(res)
+  if ( res == "PGRES_FATAL_ERROR" ) return(res)
+  if ( only.names ) return(res[[2]])
+  return(res)
 }
 
 #' @param tablename the name of a PostgreSQL table
@@ -191,7 +193,6 @@ write_table = function(x,
     tablename = deparse(substitute(x))
   x = as.data.frame(x, stringsAsFactors = FALSE)
   if ( prod(dim(x)) < 1 ) stop("Empty input")
-  exists_in_db = table_exists(tablename, schemaname)
   tablename = dquote_esc(tablename)
   tablename = set_schema(tablename, schemaname)
   x = handle_row_names(x, row_names)
@@ -222,10 +223,11 @@ write_table = function(x,
   }
   types = as.csv(types)
   colnames = as.csv(colnames)
-  query("begin")
-  on.exit(query("end"))
-  if ( overwrite && exists_in_db )
-    query(paste("drop table", tablename))
+  if ( !is.na(check_transaction()) ) on.exit(query("end"))
+  spname = get_unique_name();
+  query(paste("savepoint", spname))
+  if ( overwrite )
+    query(paste("drop table if exists", tablename))
   sql = paste("create table", tablename, "(", types, ")")
   status = query(sql)
   if ( status == "PGRES_COMMAND_OK" )
@@ -237,9 +239,22 @@ write_table = function(x,
     sql = paste(sql, "values (", sqlpars, ")")
     ssname = get_unique_name()
     pstatus = prepare(sql, ssname)
-    if ( pstatus == "PGRES_FATAL_ERROR" ) return(pstatus)
-    estatus = execute(x, ssname)
-    if ( estatus == "PGRES_FATAL_ERROR" ) return(estatus)
+    if ( pstatus == "PGRES_FATAL_ERROR" )
+    {
+      query(paste("rollback to", spname))
+      return(pstatus)
+    }
+    estatus = execute_prepared(x, ssname)
+    if ( estatus == "PGRES_FATAL_ERROR" )
+    {
+      query(paste("rollback to", spname))
+      return(estatus)
+    }
+    query(paste("release", spname))
+  }
+  else
+  {
+    query(paste("rollback to", spname))
   }
   return(status)
 }
@@ -343,7 +358,7 @@ print.pg.trace.dump = function(x, ...)
 #' 
 #' # write data frame contents
 #' data(mtcars)
-#' write_table(mtcars, overwrite = TRUE)
+#' write_table(mtcars)
 #' 
 #' # expand rows to columns 8 rows at a time
 #' x = foreach(i = cursor("select * from mtcars", 8),
@@ -361,6 +376,11 @@ print.pg.trace.dump = function(x, ...)
 #'  
 #'  # setup the dopar call
 #'  registerDoParallel(cl)
+#'  
+#'  # lets verify that we are in fact going parallel
+#'  print(unique(unlist(
+#'    foreach(i = cursor("select * from mtcars")) %dopar%
+#'    get_conn_info()$server.pid)))
 #'  
 #'  # take column averages 8 rows at a time
 #'  curs1 = cursor("select * from mtcars", by = 8)
@@ -395,13 +415,13 @@ cursor = function(sql, by = 1)
 #' @param x parameter values
 #' @rdname prepare
 #' @export
-execute = function(x, name = "")
+execute_prepared = function(x, name = "")
 {
   x = as.matrix(x)
   cols = num_prepared_params(name)
   rows = ceiling(length(x) / cols)
   dim(x) = c(rows, cols)
   storage.mode(x) = "character"
-  execute_(x, name)
+  execute_prepared_(x, name)
 }
 

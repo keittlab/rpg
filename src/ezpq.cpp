@@ -388,7 +388,7 @@ CharacterVector check_transaction()
 //' SQL statement and then application of that statement to a arrays
 //' of input parameters.
 //' 
-//' If the number of parameters supplied to \code{execute} is a
+//' If the number of parameters supplied to \code{execute_prepared} is a
 //' multiple of the number of open parameters in query prepared
 //' using \code{prepare}, then the prepared query will be executed
 //' repeatedly for each successive set of parameters. This repeated
@@ -400,7 +400,7 @@ CharacterVector check_transaction()
 //' The passed parameters will be coerced to character strings.
 //' 
 //' If you supply a \code{name}, then you must use the same name
-//' when calling \code{execute}. This allows multiple prepared queries.
+//' when calling \code{execute_prepared}. This allows multiple prepared queries.
 //' If you do not supply a name, each call to \code{prepare} will
 //' overwrite the previous prepared statement. The lifetime of
 //' a prepared statement is the lifetime of the current connection
@@ -425,7 +425,7 @@ CharacterVector check_transaction()
 //' pars = paste0("$", 1:11, collapse = ", ")
 //' sql = paste0("insert into mtcars values (", pars, ")", collapse = " ")
 //' prepare(sql, "test_statement")
-//' execute(mtcars, "test_statement")
+//' execute_prepared(mtcars, "test_statement")
 //' read_table(mtcars, limit = 5)
 //' 
 //' # drop the database
@@ -443,7 +443,7 @@ CharacterVector prepare(const char* sql, const char* name = "")
 }
 
 // [[Rcpp::export]]
-SEXP execute_(CharacterMatrix pars, const char* name = "")
+SEXP execute_prepared_(CharacterMatrix pars, const char* name = "")
 {
   exec_prepared_rows(pars, name);
   return get_result_status();
