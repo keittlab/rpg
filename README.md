@@ -48,7 +48,7 @@ package.
     ````
 Here neither the client nor the server deals with more than three rows of results
 at a time. This allows incremental processing of massive tables. Note that you can
-use `%dopar%` with `cursor`. See `help("cursor")` for an example.
+do parallel computing with `cursor`. See `help("cursor")` for an example.
 
 4. Simple access to execution of prepared statements.
     ````
