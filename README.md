@@ -57,7 +57,7 @@ do parallel computing with `cursor`. See `help("cursor")` for an example.
     params = matrix(rnorm(300), 100)
     execute_prepared(params)
     ````
-The call to `execute` evalutes the prepared statement for each row of the
+The call to `execute_prepared` evalutes the prepared statement for each row of the
 supplied parameters. This evaluation loop is in C++.
 
 Installation
