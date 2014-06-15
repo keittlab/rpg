@@ -55,7 +55,7 @@ do parallel computing with `cursor`. See `help("cursor")` for an example.
     library(ezpg)
     prepare("insert into mytab (a, b, c) values ($1, $2, $3)")
     params = matrix(rnorm(300), 100)
-    execute(params)
+    execute_prepared(params)
     ````
 The call to `execute` evalutes the prepared statement for each row of the
 supplied parameters. This evaluation loop is in C++.
