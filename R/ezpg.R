@@ -321,8 +321,8 @@ print.pg.trace.dump = function(x, ...)
 #' @param by how many rows to return each iteration
 #' 
 #' @details This function generates an interator object that can be used with
-#' the \code{\link{foreach-package}}. It is possible to use the
-#' \code{\link{\%dopar\%}} operator as shown in the example below. You must
+#' the \code{foreach-package}. It is possible to use the
+#' \code{\%dopar\%} operator as shown in the example below. You must
 #' establish a connection to the database on each node and in your current
 #' session because the call to \code{cursor} requires it. Note that the
 #' cursor\'s lifetime is the current transaction block, so if anything happens
@@ -394,7 +394,7 @@ print.pg.trace.dump = function(x, ...)
 #' query("rollback")
 #' disconnect()}
 #' 
-#' @seealso \code{\link{foreach}}
+#' @seealso \code{foreach}
 #' 
 #' @author Timothy H. Keitt
 #' @export
