@@ -372,7 +372,9 @@ print.pg.trace.dump = function(x, ...)
 #'  cl = makeCluster(2)
 #'  
 #'  # must connect to database on each node
-#'  clusterEvalQ(cl, { library(ezpg); connect() })
+#'  clusterEvalQ(cl, library(ezpg))
+#'  clusterEvalQ(cl, connect())
+#'  clusterEvalQ(cl, query("set search_path to ezpgtesting"))
 #'  
 #'  # setup the dopar call
 #'  registerDoParallel(cl)
