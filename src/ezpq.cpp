@@ -35,7 +35,7 @@
 //' 
 //' @examples
 //' \dontrun{
-//' ping("connect_timeout = 5, host = www.r-project.org")
+//' ping("connect_timeout = 5, host = www.keittlab.org")
 //' connect("host = localhost")
 //' fetch("show search_path")}
 //' get_conn_defaults()
@@ -49,7 +49,6 @@
 // [[Rcpp::export]]
 CharacterVector connect(const char* opts = "")
 {
-  clear_conn();
   setup_connection(opts);
   CharacterVector out(connection_status_string());
   out.attr("error.message") = connection_error_string();
@@ -86,6 +85,12 @@ CharacterVector ping(const char* opts = "")
 void disconnect()
 {
   clear_conn();
+}
+
+// [[Rcpp::export]]
+void clean_up_all()
+{
+  clear_all();
 }
 
 //' @return get_conn_error: an error string
@@ -234,7 +239,7 @@ List fetch_dataframe()
 //' connect()
 //' trace_conn()
 //' list_tables()
-//' dump_conn_trace(n = 10)
+//' dump_conn_trace(n = 20)
 //' untrace_conn(remove = TRUE)}
 //' @rdname tracing
 //' @export
@@ -454,4 +459,145 @@ int num_prepared_params(const char* name = "")
 {
   set_res(PQdescribePrepared(conn, name));
   return PQnparams(res);
+}
+
+//' Multiple PostgreSQL connections
+//' 
+//' Manage multiple connections on a stack
+//' 
+//' @details
+//' These functions allow you to store multiple connections on a stack. They are
+//' only used for their side-effects. \code{\link{ezpg}} stores an active connection
+//' pointer internally. This pointer can be moved onto the stack and manipulated.
+//' Once on the stack, the pointer is no longer active. You must use
+//' \code{swap_conn} or \code{pop_conn} to reactive a pushed connection, or call
+//' \code{\link{connect}} to create a new active connection.
+//' 
+//' \code{push_conn} pushes the current connection onto the connection stack
+//' leaving the active connection null.
+//' 
+//' @examples
+//' \dontrun{
+//' # try connecting to default database
+//' if ( connect() == "CONNECTION_BAD" )
+//' {
+//'  system("createdb -w -e")
+//'  if ( connect() == "CONNECTION_BAD" )
+//'    stop("Cannot connect to database")
+//' }
+//' 
+//' # make some databases
+//' dbs = basename(c(tempfile(), tempfile(), tempfile()))
+//' sql = paste("create database", dbs)
+//' if ( any(sapply(sql, query) == "PGRES_FATAL_ERROR") )
+//' {
+//'   lapply(paste("drop database", dbs), query)
+//'   stop("Cannot create databases")
+//' }
+//' 
+//' # connect
+//' connect(paste("dbname", dbs[1], sep = "=")); push_conn()
+//' connect(paste("dbname", dbs[2], sep = "=")); push_conn()
+//' connect(paste("dbname", dbs[3], sep = "=")); push_conn()
+//' 
+//' show_conn_stack()
+//' rotate_stack()
+//' show_conn_stack()
+//' pop_conn()
+//' show_conn_stack()
+//' get_conn_info()$dbname
+//' swap_conn()
+//' show_conn_stack()
+//' get_conn_info()$dbname
+//' pop_conn()
+//' show_conn_stack()
+//' pop_conn()
+//' show_conn_stack()
+//' disconnect()
+//' connect()
+//' 
+//' # cleanup
+//' lapply(paste("drop database", dbs), query)}
+//' 
+//' @rdname stack
+//' @export
+// [[Rcpp::export]]
+void push_conn()
+{
+  conn_stack.push_back(conn);
+  conn = NULL;
+}
+
+//' @details
+//' \code{pop_conn} pops a connection off the stack and makes it active. Whatever
+//' connection was active when \code{pop_conn} is called will be disconnected and
+//' cleared. Use \code{swap_conn} to preserve the active connection.
+//' 
+//' @rdname stack
+//' @export
+// [[Rcpp::export]]
+void pop_conn()
+{
+  set_conn(conn_stack.back());
+  conn_stack.pop_back();
+}
+
+//' @details
+//' \code{swap_conn} swaps the active connection with the connection on the top
+//' of the stack. If the stack is empty, the connection is swapped with a null
+//' connection.
+//' 
+//' @rdname stack
+//' @export
+// [[Rcpp::export]]
+void swap_conn()
+{
+  if ( conn_stack.empty() )
+    push_conn();
+  else
+    std::swap(conn, conn_stack.back());
+}
+
+//' @details
+//' \code{rotate_stack} moves the bottom of the stack to the top.
+//' 
+//' @rdname stack
+//' @export
+// [[Rcpp::export]]
+void rotate_stack()
+{
+  if ( ! conn_stack.empty() )
+    std::rotate(conn_stack.begin(),
+                conn_stack.begin() + 1,
+                conn_stack.end());
+}
+
+//' @details
+//' \code{show_conn_stack} returns a data frame with information about the
+//' connections on the stack.
+//' 
+//' @rdname stack
+//' @export
+// [[Rcpp::export]]
+List show_conn_stack()
+{
+  int n = conn_stack.size();
+  if ( n == 0 ) return List();
+  CharacterVector host(n), dbname(n);
+  LogicalVector conn_status(n);
+  for ( int i = 0; i != n; ++i )
+  {
+    const char *hn = PQhost(conn_stack[i]),
+               *db = PQdb(conn_stack[i]);
+    bool is_ok = PQstatus(conn_stack[i]) == CONNECTION_OK;
+    if ( hn ) host[i] = hn; else host[i] = NA_STRING;
+    if ( db ) dbname[i] = db; else dbname[i] = NA_STRING;
+    conn_status[i] = is_ok;
+  }
+  List out = List::create(Named("host") = host,
+                          Named("dbname") = dbname,
+                          Named("status.ok") = conn_status);
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -host.size());
+  out.attr("class") = "data.frame";
+  return out;
 }

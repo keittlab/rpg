@@ -12,7 +12,7 @@ get_pg_type = function(x)
 #' @export
 .Last.lib = function(libpath)
 {
-  disconnect()
+  clean_up_all()
 }
 
 #' @export

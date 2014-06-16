@@ -55,7 +55,7 @@ fetch = function(sql = "", pars = NULL)
 #' 
 #' @param only.names if true, just list the table names
 #' 
-#' @return \code{list_tables} a list of table names
+#' @return \code{list_tables}: a vector of table names or a data frame
 #' 
 #' @author Timothy H. Keitt
 #' @rdname table-info
@@ -81,7 +81,7 @@ list_tables = function(only.names = TRUE)
                AND pg_catalog.pg_table_is_visible(c.oid)
                ORDER BY 1,2")
   if ( length(res) < 1 ) return(res)
-  if ( res == "PGRES_FATAL_ERROR" ) return(res)
+  if ( inherits(res, "pq.status") ) return(res)
   if ( only.names ) return(res[[2]])
   return(res)
 }

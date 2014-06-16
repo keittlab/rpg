@@ -13,6 +13,8 @@ static PGresult* res = NULL;
 static const char* tracefname = NULL;
 static std::FILE* tracef = NULL;
 
+static std::vector<PGconn*> conn_stack;
+
 static void clear_res()
 {
   PQclear(res);
@@ -24,12 +26,47 @@ static void set_res(PGresult* x)
   PQclear(res);
   res = x;
 }
-  
+
 static void clear_tracef()
 {
   PQuntrace(conn);
   if ( tracef ) fclose(tracef);
   tracef = NULL;
+}
+
+static void clear_conn()
+{
+  clear_res();
+  clear_tracef();
+  PQfinish(conn);
+  conn = NULL;
+}
+
+static void set_conn(PGconn* x)
+{
+  clear_conn();
+  conn = x;
+}
+
+static void clear_stack()
+{
+  if ( conn_stack.empty() ) return;
+  if ( conn )
+  {
+    conn_stack.insert(conn_stack.begin(), conn);
+    conn = NULL;
+  }
+  while ( ! conn_stack.empty() )
+  {
+    set_conn(conn_stack.back());
+    conn_stack.pop_back();
+  }
+}
+
+static void clear_all()
+{
+  clear_stack();
+  clear_conn();
 }
 
 static void cancel()
@@ -53,7 +90,7 @@ ezpg_notice_processor(void *arg, const char *message)
 
 static void setup_connection(const char* opts = "")
 {
-  conn = PQconnectdb(opts);
+  set_conn(PQconnectdb(opts));
   if ( PQstatus(conn) == CONNECTION_OK )
     PQsetNoticeProcessor(conn, ezpg_notice_processor, NULL);
 }
@@ -74,14 +111,6 @@ static void check_conn()
     else
       Rcout << "that worked." << std::endl;
   }
-}
-
-static void clear_conn()
-{
-  clear_res();
-  clear_tracef();
-  PQfinish(conn);
-  conn = NULL;
 }
 
 static SEXP wrap_string(const char* s)
