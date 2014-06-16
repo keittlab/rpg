@@ -47,7 +47,7 @@ package.
     }
     ````
 Here neither the client nor the server deals with more than three rows of results
-at a time. This allows incremental processing of massive tables. Note that you can
+at a time. This allows incremental processing of massive tables. Note that you **can**
 do parallel computing with `cursor`. See `help("cursor")` for an example.
 
 4. Simple access to execution of prepared statements.
@@ -59,6 +59,17 @@ do parallel computing with `cursor`. See `help("cursor")` for an example.
     ````
 The call to `execute_prepared` evalutes the prepared statement for each row of the
 supplied parameters. This evaluation loop is in C++.
+
+5. Maintain multiple live connections without holding external pointers, creating
+finalizers, etc.
+    ````
+    library(ezpg)
+    connect("dbname = db1"); push_conn()
+    connect("dbname = db2"); push_conn()
+    show_conn_stack(); rotate_conn_stack()
+    swap_conn(); pop_conn(); pop_conn()
+    ````
+This means there are no connection objects to save and reload as invalid null pointers. All state lives only for the current session.
 
 Installation
 ------------
