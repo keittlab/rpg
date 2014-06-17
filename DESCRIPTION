@@ -1,4 +1,4 @@
-Package: ezpg
+Package: pqr
 Type: Package
 Title: Easy interface to advanced PostgreSQL features
 Version: 0.1
@@ -9,7 +9,7 @@ Description: Allows adhoc queries and reading and
     writing data frames to and from a database.
 License: GPL
 URL: http://www.keittlab.org/, http://www.postgresql.org/,
-    https://github.com/thk686/ezpg
+    https://github.com/thk686/pqr
 Imports:
     Rcpp (>= 0.11.1),
     uuid (>= 0.1-1)

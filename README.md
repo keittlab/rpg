@@ -1,4 +1,4 @@
-ezpg
+pqr
 ====
 
 An R package for reading from and writing to a PostgreSQL database
@@ -12,7 +12,7 @@ Key features include:
 
 1. Simple quick query execution and retrieval
     ````
-    library(ezpg)
+    library(pqr)
     res = fetch("select * from mtcars") # query default database
     class(res)                          # data.frame
     ````
@@ -26,7 +26,7 @@ do this in R is another question.)
 If you don't know what that means, you will quickly find out if you start using R
 database packages.
     ````
-    library(ezpg)
+    library(pqr)
     connect("dbname = testing")                            # use any libpq connection string
     query("select * from testtab where a = $1", "yes")     # the value "yes" is substituted for $1
     res = fetch()                                          # returns the query as data.frame
@@ -38,7 +38,7 @@ with your database. Basically a cursor is a prepared query that return a limited
 of rows on demand. This is conveniently wrapped in an R iterator from the iterators
 package.
     ````
-    library(ezpg)
+    library(pqr)
     library(foreach)
     r3 = cursor("select * from testtab", by = 3)
     x = foreach(i = r3, .combine = rbind) %do%
@@ -52,7 +52,7 @@ do parallel computing with `cursor`. See `help("cursor")` for an example.
 
 4. Simple access to execution of prepared statements.
     ````
-    library(ezpg)
+    library(pqr)
     prepare("insert into mytab (a, b, c) values ($1, $2, $3)")
     params = matrix(rnorm(300), 100)
     execute_prepared(params)
@@ -63,7 +63,7 @@ supplied parameters. This evaluation loop is in C++.
 5. Maintain multiple live connections without holding external pointers, creating
 finalizers, etc.
     ````
-    library(ezpg)
+    library(pqr)
     connect("dbname = db1"); push_conn()
     connect("dbname = db2"); push_conn()
     show_conn_stack(); rotate_conn_stack()
@@ -87,5 +87,5 @@ in R does not return anything, then this package will likely not install. To ins
 
 ```
 install.packages(c("devtools", "Rcpp", "roxygen2"))
-devtools::install_github("ezpg", "thk686")
+devtools::install_github("pqr", "thk686")
 ```
