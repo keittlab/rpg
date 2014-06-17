@@ -37,11 +37,10 @@
 //' \dontrun{
 //' ping("connect_timeout = 5, host = www.keittlab.org")
 //' connect("host = localhost")
-//' fetch("show search_path")}
+//' fetch("show search_path")
 //' get_conn_defaults()
 //' get_conn_info()
 //' get_conn_error()
-//' \dontrun{
 //' disconnect()}
 //' 
 //' @export connect
@@ -104,15 +103,8 @@ CharacterVector get_conn_error()
   return err;
 }
 
-//' @details \code{get_conn_info} returns a list containing
-//' information about the current connection. For
-//' readability, it will print as though it is a matrix. If
-//' you want to see it as a list, try \code{unclass(get_conn_info())}.
-//' @return get_conn_info: a list of values
-//' @export get_conn_info
-//' @rdname connection
 // [[Rcpp::export]]
-SEXP get_conn_info()
+SEXP get_conn_info_()
 {
   List info;
   info["dbname"] = wrap_string(PQdb(conn));
@@ -239,7 +231,7 @@ List fetch_dataframe()
 //' connect()
 //' trace_conn()
 //' list_tables()
-//' dump_conn_trace(n = 20)
+//' dump_conn_trace(n = 40)
 //' untrace_conn(remove = TRUE)}
 //' @rdname tracing
 //' @export
@@ -288,7 +280,7 @@ const char* get_trace_filename()
 //' @rdname connection
 //' @export
 // [[Rcpp::export]]
-DataFrame get_conn_defaults()
+List get_conn_defaults()
 {
   std::vector<std::string> kw, ev, cp, va;
   PQconninfoOption *defs = PQconndefaults(), *i = defs;
@@ -301,10 +293,13 @@ DataFrame get_conn_defaults()
         ++i;
   }
   PQconninfoFree(defs);
-  return DataFrame::create(Named("keyword") = kw,
-                           Named("envvar") = ev,
-                           Named("compiled") = cp,
-                           Named("value") = va);
+  List out = List::create(Named("keyword") = kw,
+                          Named("envvar") = ev,
+                          Named("compiled") = cp,
+                          Named("value") = va);
+  out.attr("row.names") = IntegerVector::create(NA_INTEGER, -kw.size());
+  out.attr("class") = "data.frame";
+  return out;
 }
 
 //' Miscelaneous functions
@@ -415,8 +410,21 @@ CharacterVector check_transaction()
 //' 
 //' @examples
 //' \dontrun{
-//' system("createdb -w -e ezpgtestingdb")
-//' connect("dbname = ezpgtestingdb")
+//' # try connecting to default database
+//' if ( connect() == "CONNECTION_BAD" )
+//' {
+//'  system("createdb -w -e")
+//'  if ( connect() == "CONNECTION_BAD" )
+//'    stop("Cannot connect to database")
+//' }
+//' 
+//' # we'll rollback at the end
+//' query("begin")
+//' 
+//' # for kicks work in a schema
+//' query("drop schema if exists ezpgtesting cascade")
+//' query("create schema ezpgtesting")
+//' query("set search_path to ezpgtesting")
 //' 
 //' # write data frame contents
 //' data(mtcars)
@@ -433,9 +441,9 @@ CharacterVector check_transaction()
 //' execute_prepared(mtcars, "test_statement")
 //' read_table(mtcars, limit = 5)
 //' 
-//' # drop the database
-//' disconnect()
-//' system("dropdb -w -e ezpgtestingdb")}
+//' # cleanup and disconnect
+//' query("rollback")
+//' disconnect()}
 //' 
 //' @rdname prepare
 //' @export
@@ -503,12 +511,14 @@ int num_prepared_params(const char* name = "")
 //' show_conn_stack()
 //' rotate_stack()
 //' show_conn_stack()
+//' rotate_stack(2)
+//' show_conn_stack()
 //' pop_conn()
 //' show_conn_stack()
-//' get_conn_info()$dbname
+//' get_conn_info("dbname")
 //' swap_conn()
 //' show_conn_stack()
-//' get_conn_info()$dbname
+//' get_conn_info("dbname")
 //' pop_conn()
 //' show_conn_stack()
 //' pop_conn()
@@ -558,17 +568,19 @@ void swap_conn()
     std::swap(conn, conn_stack.back());
 }
 
+//' @param n number of shifts
 //' @details
 //' \code{rotate_stack} moves the bottom of the stack to the top.
 //' 
 //' @rdname stack
 //' @export
 // [[Rcpp::export]]
-void rotate_stack()
+void rotate_stack(const unsigned n = 1)
 {
-  if ( ! conn_stack.empty() )
+  int ss = conn_stack.size();
+  if ( ss > 1 )
     std::rotate(conn_stack.begin(),
-                conn_stack.begin() + 1,
+                conn_stack.begin() + n % ss,
                 conn_stack.end());
 }
 

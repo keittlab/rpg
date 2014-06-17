@@ -1,4 +1,5 @@
 
+
 #' @name ezpg-package
 #' @aliases ezpg
 #' @docType package
@@ -149,9 +150,21 @@ describe_table = function(tablename)
 #' 
 #' @examples
 #' \dontrun{
-#' # make a database and connect
-#' system("createdb -w -e ezpgtestingdb")
-#' connect("dbname = ezpgtestingdb")
+#' # try connecting to default database
+#' if ( connect() == "CONNECTION_BAD" )
+#' {
+#'  system("createdb -w -e")
+#'  if ( connect() == "CONNECTION_BAD" )
+#'    stop("Cannot connect to database")
+#' }
+#' 
+#' # we'll rollback at the end
+#' query("begin")
+#' 
+#' # for kicks work in a schema
+#' query("drop schema if exists ezpgtesting cascade")
+#' query("create schema ezpgtesting")
+#' query("set search_path to ezpgtesting")
 #' 
 #' # write data frame contents
 #' data(mtcars)
@@ -173,11 +186,11 @@ describe_table = function(tablename)
 #' read_table("mtcars", row_names = "id", limit = 3)
 #' 
 #' # get row names from primary key
-#' read_table("mtcars", pkey_to_row_names = T, limit = 3)}
+#' read_table("mtcars", pkey_to_row_names = T, limit = 3)
 #' 
-#' # drop the database
-#' disconnect()
-#' system("dropdb -w -e ezpgtestingdb")
+#' # cleanup and disconnect
+#' query("rollback")
+#' disconnect()}
 #' 
 #' @rdname table-io
 #' @export
@@ -382,7 +395,7 @@ print.pg.trace.dump = function(x, ...)
 #'  # lets verify that we are in fact going parallel
 #'  print(unique(unlist(
 #'    foreach(i = cursor("select * from mtcars")) %dopar%
-#'    get_conn_info()$server.pid)))
+#'    get_conn_info("server.pid"))))
 #'  
 #'  # take column averages 8 rows at a time
 #'  curs1 = cursor("select * from mtcars", by = 8)
@@ -425,5 +438,45 @@ execute_prepared = function(x, name = "")
   dim(x) = c(rows, cols)
   storage.mode(x) = "character"
   execute_prepared_(x, name)
+}
+
+#' @param what the fields to return
+#' @details \code{get_conn_info} returns a list containing
+#' information about the current connection. For
+#' readability, it will print as though it is a matrix. If
+#' you want to see it as a list, try \code{unclass(get_conn_info())}.
+#' 
+#' If \code{length(what) == 1} then \code{get_conn_info} returns
+#' a scalar
+#' 
+#' @return get_conn_info: a list of values
+#' @export get_conn_info
+#' @rdname connection
+get_conn_info = function(what = NULL)
+{
+  res = get_conn_info_()
+  if ( is.null(what) ) return(res)
+  if ( length(what) == 1 ) return(res[[what]])
+  return(res[what])
+}
+
+set_conn_defaults = function(conninfo)
+{
+  conninfo = gsub(" ", "", conninfo)
+  defs = get_conn_defaults()
+  with(defs,
+  {
+    for ( i in which(nchar(envvar) > 0) )
+    {
+      conninfo = sub(keyword[i], envvar[i], conninfo, fixed = TRUE)
+    }
+    for ( opt in strsplit(conninfo, ",") )
+    {
+      opts = strsplit(opt, "=")
+      args = list(opts[2])
+      names(args) = opts[1]
+      do.call("Sys.setenv", args)
+    }
+  })
 }
 
