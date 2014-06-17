@@ -82,15 +82,26 @@ static void cancel()
              << buff << std::endl;
 }
 
+static std::vector<const char*>
+charvec_to_vec_char(CharacterVector x, const bool null_terminate = false)
+{
+  std::vector<const char*> out(x.size());
+  for ( int i = 0; i != x.size(); ++i ) out[i] = CHAR(x[i]);
+  if ( null_terminate ) out.push_back('\0');
+  return out;
+}
+
 static void
 pqr_notice_processor(void *arg, const char *message)
 {
     // Rcout << message;
 }
 
-static void setup_connection(const char* opts = "")
+static void setup_connection(CharacterVector keywords, CharacterVector values)
 {
-  set_conn(PQconnectdb(opts));
+  std::vector<const char*> kw = charvec_to_vec_char(keywords, true),
+                           vals = charvec_to_vec_char(values, true);
+  set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
   if ( PQstatus(conn) == CONNECTION_OK )
     PQsetNoticeProcessor(conn, pqr_notice_processor, NULL);
 }
@@ -104,7 +115,7 @@ static void check_conn()
     if ( PQstatus(conn) == CONNECTION_BAD )
     {
       Rcout << "nope... trying default... ";
-      setup_connection("");
+      setup_connection(CharacterVector(), CharacterVector());
     }
     if ( PQstatus(conn) == CONNECTION_BAD )
       Rcout << "connection failed (try ping)." << std::endl;
@@ -166,7 +177,7 @@ static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
   
   std::vector<const char*> out;
   x = PROTECT(Rf_coerceVector(x, STRSXP));
-  for ( int i = 0; i < Rf_length(x); ++i )
+  for ( int i = 0; i != Rf_length(x); ++i )
   {
     SEXP csxp = STRING_ELT(x, i);
     out.push_back(csxp == NA_STRING ? '\0' : CHAR(csxp));
@@ -181,14 +192,6 @@ static void exec_params(const char* sql = "", SEXP pars = R_NilValue)
   set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
 }
 
-static std::vector<const char*>
-charvec_to_vec_char(CharacterVector x)
-{
-  std::vector<const char*> out(x.size());
-  for ( int i = 0; i < x.size(); ++i ) out[i] = CHAR(x[i]);
-  return out;
-}
-
 static void exec_prepared(CharacterVector pars, const char* name = "")
 {
   std::vector<const char*> vals = charvec_to_vec_char(pars);
@@ -197,7 +200,7 @@ static void exec_prepared(CharacterVector pars, const char* name = "")
 
 static void exec_prepared_rows(CharacterMatrix pars, const char* name = "")
 {
-  for ( int i = 0; i < pars.nrow(); ++i )
+  for ( int i = 0; i != pars.nrow(); ++i )
   {
     CharacterVector row = pars.row(i);
     std::vector<const char*> vals = charvec_to_vec_char(row);
@@ -249,7 +252,7 @@ static SEXP fetch_column(const int col = 0)
     case 16:
     {
       LogicalVector out(nrow);
-      for ( int row = 0; row < nrow; ++row )
+      for ( int row = 0; row != nrow; ++row )
         out[row] = fetch_bool(row, col);
       return wrap(out);
     }
@@ -258,7 +261,7 @@ static SEXP fetch_column(const int col = 0)
     case 23:
     {
       IntegerVector out(nrow);
-      for ( int row = 0; row < nrow; ++row )
+      for ( int row = 0; row != nrow; ++row )
         out[row] = fetch_int(row, col);
       return wrap(out);
     }
@@ -266,21 +269,21 @@ static SEXP fetch_column(const int col = 0)
     case 701:
     {
       NumericVector out(nrow);
-      for ( int row = 0; row < nrow; ++row )
+      for ( int row = 0; row != nrow; ++row )
         out[row] = fetch_double(row, col);
       return wrap(out);
     }
     case 1082:
     {
       DateVector out(nrow);
-      for ( int row = 0; row < nrow; ++row )
+      for ( int row = 0; row != nrow; ++row )
         out[row] = fetch_date(row, col);
       return wrap(out);
     }
     default:
     {
       CharacterVector out(nrow);
-      for ( int row = 0; row < nrow; ++row )
+      for ( int row = 0; row != nrow; ++row )
         out[row] = fetch_string(row, col);
       return wrap(out);
     }

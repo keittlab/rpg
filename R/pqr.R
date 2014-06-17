@@ -1,5 +1,3 @@
-
-
 #' @name pqr-package
 #' @aliases pqr
 #' @docType package
@@ -31,6 +29,69 @@
 #' @useDynLib pqr
 NULL
 
+#' PostgreSQL connection
+#' 
+#' Manage database connection
+#' 
+#' @param dbname name of the database or a valid \code{libpq} connection string
+#' @param ... named optional connection parameters
+#' 
+#' @details If no connection parameters are supplied, the
+#' connection will fallback to default parameters. Usually
+#' this establishes a connection on the localhost to a database,
+#' if it exists, with the same name as the user.
+#'
+#' Valid keywords and their defaults can be obtained by calling
+#' \code{get_conn_defaults(all = TRUE)}. A valid \code{libpq}
+#' connection string is composed of \code{keyword = value} pairs
+#' separated by whitespace. You can either pass the entire string
+#' or use named arguments. The names of the arguments will be used
+#' as keywords and their values as values.
+#' 
+#' @note Do not open a connection and then fork the R
+#' process. The behavior will be unpredictable. It is perfectly
+#' acceptable however to call \code{connect} within each
+#' forked instance.
+#' 
+#' Be careful with \code{ping} as it will attemp to connect to
+#' the database server on a remote host, which might not be
+#' appreciated by a remote administator. Also, \code{ping} may
+#' seem to hang for a long time. It is just polling the connection
+#' until it times out.
+#' 
+#' @return
+#' \code{connect} returns one of:
+#' \tabular{ll}{
+#' \code{CONNECTION_OK} \tab Succesful connection \cr
+#' \code{CONNECTION_BAD} \tab Connection failed \cr}
+#' 
+#' @author Timothy H. Keitt
+#' 
+#' @examples
+#' \dontrun{
+#' fetch("show search_path") # default connection
+#' connect("test")
+#' connect(dbname = "test")
+#' connect(dbname = "test", host = "localhost")
+#' connect("dbname = test host = localhost")
+#' disconnect()}
+#' 
+#' @export connect
+#' @rdname connection
+connect = function(dbname, ...)
+{
+  if ( missing(dbname) )
+    values = list(...)
+  else
+    values = list(dbname = dbname, ...)
+  if ( length(values) == 0 )
+    return(connect_(character(0), character(0)))
+  keywords = names(values)
+  if ( is.null(keywords) || "" %in% keywords )
+    stop("all arguments must be named")
+  connect_(keywords, as.character(values))
+}
+
 #' @details \code{fetch} returns the result of a query as a data frame. If
 #' \code{sql} is \code{NULL} or empty, then an attempt will be made to retrieve
 #' any pending resutls from previous queries. Note that query results are not
@@ -59,6 +120,35 @@ fetch = function(sql = "", pars = NULL)
 #' @return \code{list_tables}: a vector of table names or a data frame
 #' 
 #' @author Timothy H. Keitt
+#' 
+#' @examples
+#' \dontrun{
+#' # try connecting to default database
+#' if ( connect() == "CONNECTION_BAD" )
+#' {
+#'  system("createdb -w -e")
+#'  if ( connect() == "CONNECTION_BAD" )
+#'    stop("Cannot connect to database")
+#' }
+#' 
+#' # we'll rollback at the end
+#' query("begin")
+#' 
+#' # for kicks work in a schema
+#' query("drop schema if exists pqrtesting cascade")
+#' query("create schema pqrtesting")
+#' query("set search_path to pqrtesting")
+#' 
+#' # write data frame contents
+#' data(mtcars)
+#' write_table(mtcars)
+#' list_tables()
+#' describe_table("mtcars", "pqrtesting") 
+#' 
+#' # cleanup and disconnect
+#' query("rollback")
+#' disconnect()}
+#' 
 #' @rdname table-info
 #' @export
 list_tables = function(only.names = TRUE)
@@ -88,12 +178,13 @@ list_tables = function(only.names = TRUE)
 }
 
 #' @param tablename the name of a PostgreSQL table
+#' @param schemaname if not null, look only in this schema
 #' @return \code{describe_table}: a data frame with column information
 #' @rdname table-info
 #' @export
-describe_table = function(tablename)
+describe_table = function(tablename, schemaname = NULL)
 {
-  fetch("SELECT
+  sql = "SELECT
           table_schema as schema,
           table_name as table,
           column_name as column,
@@ -101,11 +192,25 @@ describe_table = function(tablename)
           data_type as type,
           column_default as default
         FROM
-          information_schema.columns
-        WHERE
-          table_name = $1
-        ORDER BY
-          ordinal_position", tablename)
+          information_schema.columns"
+  if ( is.null(schemaname) )
+  {
+    where = "WHERE
+              table_name = $1"
+    order = "ORDER BY
+              table_schema, ordinal_position"
+    fetch(paste(sql, where, order), tablename)
+  }
+  else
+  {
+    where = "WHERE
+              table_schema = $1
+             AND
+              table_name = $2"
+    order = "ORDER BY
+              ordinal_position"
+    fetch(paste(sql, where, order), c(schemaname, tablename))
+  }
 }
 
 #' PostgreSQL data frame IO
@@ -371,7 +476,7 @@ print.pg.trace.dump = function(x, ...)
 #' 
 #' # write data frame contents
 #' data(mtcars)
-#' write_table(mtcars)
+#' write_table(mtcars, row_names = "id", pkey = "id")
 #' 
 #' # expand rows to columns 8 rows at a time
 #' x = foreach(i = cursor("select * from mtcars", 8),
@@ -392,15 +497,20 @@ print.pg.trace.dump = function(x, ...)
 #'  # setup the dopar call
 #'  registerDoParallel(cl)
 #'  
-#'  # lets verify that we are in fact going parallel
-#'  print(unique(unlist(
-#'    foreach(i = cursor("select * from mtcars")) %dopar%
-#'    get_conn_info("server.pid"))))
-#'  
-#'  # take column averages 8 rows at a time
-#'  curs1 = cursor("select * from mtcars", by = 8)
-#'  x = foreach(i = curs1, .combine = rbind) %dopar% apply(i, 2, mean)
-#'  print(x, digits = 2)
+#'  # take column averages 4 rows at a time
+#'  curs1 = cursor("select * from mtcars", by = 4)
+#'  x = foreach(i = curs1, .combine = rbind, .inorder = FALSE) %dopar%
+#'  {
+#'    rr = paste0(range(abbreviate(i$id)), collapse = "-")
+#'    pid = get_conn_info("server.pid")
+#'    j = names(i) != "id"
+#'    mn = signif(apply(i[, j], 2, mean), 2)
+#'    c(rows = rr, backend = pid, mn)
+#'  }
+#'  x = as.data.frame(x)
+#'  row.names(x) = x$rows
+#'  x$rows = NULL
+#'  print(noquote(x))
 #' }
 #'         
 #' # cleanup and disconnect
@@ -440,7 +550,7 @@ execute_prepared = function(x, name = "")
   execute_prepared_(x, name)
 }
 
-#' @param what the fields to return
+#' @param what the fields to return or all if NULL
 #' @details \code{get_conn_info} returns a list containing
 #' information about the current connection. For
 #' readability, it will print as though it is a matrix. If
@@ -451,7 +561,7 @@ execute_prepared = function(x, name = "")
 #' 
 #' @return get_conn_info: a list of values
 #' @export get_conn_info
-#' @rdname connection
+#' @rdname connection-utils
 get_conn_info = function(what = NULL)
 {
   res = get_conn_info_()
@@ -460,23 +570,46 @@ get_conn_info = function(what = NULL)
   return(res[what])
 }
 
-set_conn_defaults = function(conninfo)
+#' @param ... a named list of arguments giving new defaults
+#' 
+#' @details \code{set_conn_defaults} sets the connection defaults by calling
+#' \code{\link{Sys.setenv}} and setting the environment variable associated
+#' with the connection keywords returned by \code{get_conn_defaults(all = TRUE)}.
+#' These settings will only last as long as the current shell session and will
+#' reset after a new login.
+#' 
+#' @rdname connection-utils
+#' @export
+set_conn_defaults = function(...)
 {
-  conninfo = gsub(" ", "", conninfo)
-  defs = get_conn_defaults()
-  with(defs,
+  # copied from Sys.setenv
+  x = list(...)
+  nm = names(x)
+  if (is.null(nm) || "" %in% nm) 
+    stop("all arguments must be named")
+  # end copy
+  defs = get_conn_defaults(all = TRUE)
+  for ( i in seq(along = nm) )
   {
-    for ( i in which(nchar(envvar) > 0) )
-    {
-      conninfo = sub(keyword[i], envvar[i], conninfo, fixed = TRUE)
-    }
-    for ( opt in strsplit(conninfo, ",") )
-    {
-      opts = strsplit(opt, "=")
-      args = list(opts[2])
-      names(args) = opts[1]
-      do.call("Sys.setenv", args)
-    }
-  })
+    envvar = defs$envvar[defs$keyword == nm[i]]
+    if ( length(envvar) && nchar(envvar) )
+      names(x)[i] = envvar
+    else
+      x[i] = NULL
+  }
+  if ( length(x) ) do.call("Sys.setenv", x)
+}
+
+#' @details \code{reset_conn_defaults} unsets all environment variables returned
+#' by \code{get_conn_defaults(all = TRUE)}.
+#' 
+#' @rdname connection-utils
+#' @export
+reset_conn_defaults = function()
+{
+  var = get_conn_defaults(all = TRUE)$envvar
+  for ( v in var )
+    if ( length(v) && nchar(v) )
+      Sys.unsetenv(v)
 }
 

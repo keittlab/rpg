@@ -1,60 +1,21 @@
 #include "pqr.h"
 
-//' PostgreSQL connection
-//' 
-//' Manage database connection
-//' 
-//' @param opts connection parameters
-//' 
-//' @details If no connection parameters are supplied, the
-//' connection will fallback to default parameters. Usually
-//' this establishes a connection on the localhost to a database,
-//' if it exists, with the same name as the user.
-//'
-//' Valid keywords and their defaults can be obtained by calling
-//' \code{get_conn_defaults()}. 
-//' 
-//' @note Do not open a connection and then fork the R
-//' process. The behavior will be unpredictable. It is perfectly
-//' acceptable however to call \code{connect} within each
-//' forked instance.
-//' 
-//' Be careful with \code{ping} as it will attemp to connect to
-//' the database server on a remote host, which might not be
-//' appreciated by a remote administator. Also, \code{ping} may
-//' seem to hang for a long time. It is just polling the connection
-//' until it times out.
-//' 
-//' @return
-//' \code{connect} returns one of:
-//' \tabular{ll}{
-//' \code{CONNECTION_OK} \tab Succesful connection \cr
-//' \code{CONNECTION_BAD} \tab Connection failed \cr}
-//' 
-//' @author Timothy H. Keitt
-//' 
-//' @examples
-//' \dontrun{
-//' ping("connect_timeout = 5, host = www.keittlab.org")
-//' connect("host = localhost")
-//' fetch("show search_path")
-//' get_conn_defaults()
-//' get_conn_info()
-//' get_conn_error()
-//' disconnect()}
-//' 
-//' @export connect
-//' @rdname connection
 // [[Rcpp::export]]
-CharacterVector connect(const char* opts = "")
+CharacterVector connect_(CharacterVector keywords, CharacterVector values)
 {
-  setup_connection(opts);
+  setup_connection(keywords, values);
   CharacterVector out(connection_status_string());
   out.attr("error.message") = connection_error_string();
   out.attr("class") = "pq.status";
   return out;
 }
 
+//' Database connection utilities
+//' 
+//' Conection reporting and defaults
+//' 
+//' @param opts a libpq connection string
+//' 
 //' @details \code{ping} will ignore any keywords not directly
 //' related to the database host (e.g., username, dbname) as it
 //' does not connect; it only detect the server port is responding.
@@ -66,8 +27,25 @@ CharacterVector connect(const char* opts = "")
 //' connections \cr
 //' \code{PQPING_NO_RESPONSE} \tab Server unreachable \cr
 //' \code{PQPING_NO_ATTEMPT} \tab Connection string is nonsense \cr}
+//' 
+//' @author Timothy H. Keitt
+//' 
+//' @examples
+//' \dontrun{
+//' ping("connect_timeout = 3, host = www.keittlab.org")
+//' connect()
+//' get_conn_defaults()
+//' set_conn_defaults(dbname = "test")
+//' get_conn_defaults()
+//' reset_conn_defaults()
+//' get_conn_defaults()
+//' get_conn_defaults(all = TRUE)
+//' get_conn_info()
+//' get_conn_error()
+//' disconnect()}
+//' 
 //' @export ping
-//' @rdname connection
+//' @rdname connection-utils
 // [[Rcpp::export]]
 CharacterVector ping(const char* opts = "")
 {
@@ -94,7 +72,7 @@ void clean_up_all()
 
 //' @return get_conn_error: an error string
 //' @export get_conn_error
-//' @rdname connection
+//' @rdname connection-utils
 // [[Rcpp::export]]
 CharacterVector get_conn_error()
 {
@@ -153,6 +131,16 @@ SEXP get_conn_info_()
 //' PGRES_NONFATAL_ERROR \tab A nonfatal error (a notice or warning) occurred \cr
 //' PGRES_FATAL_ERROR \tab A fatal error occurred \cr
 //' PGRES_COPY_BOTH \tab Copy In/Out (to and from server) data transfer started. This is currently used only for streaming replication \cr}
+//' 
+//' @author Timothy H. Keitt
+//' 
+//' @examples
+//' \dontrun{
+//' query("begin")
+//' query("create table test (id integer, field text)")
+//' query("insert into test values ($1, $2)", c(1, "test"))
+//' fetch("select * from test")
+//' query("rollback")}
 //' 
 //' @rdname query
 //' @export query
@@ -272,25 +260,29 @@ const char* get_trace_filename()
   return tracefname;
 }
 
+//' @param all if false return only defaults with settings
 //' @details \code{get_conn_defaults} returns a data frame containing
 //' all of the possible connection string keywords, the names of environment
 //' variables used to override the defaults, the compiled in default value
 //' and the current value of the keyword.
 //' @return \code{get_conn_defaults}: a data frame with defaults listed
-//' @rdname connection
+//' @rdname connection-utils
 //' @export
 // [[Rcpp::export]]
-List get_conn_defaults()
+List get_conn_defaults(const bool all = false)
 {
   std::vector<std::string> kw, ev, cp, va;
   PQconninfoOption *defs = PQconndefaults(), *i = defs;
   while ( i && i->keyword )
   {
-        kw.push_back(i->keyword);
-        ev.push_back(i->envvar ? i->envvar : "");
-        cp.push_back(i->compiled ? i->compiled : "");
-        va.push_back(i->val ? i->val : "");
-        ++i;
+    if ( all || i->val && strlen(i->val) )
+    {
+      kw.push_back(i->keyword);
+      ev.push_back(i->envvar ? i->envvar : "");
+      cp.push_back(i->compiled ? i->compiled : "");
+      va.push_back(i->val ? i->val : "");
+    }
+    ++i;
   }
   PQconninfoFree(defs);
   List out = List::create(Named("keyword") = kw,
@@ -405,6 +397,22 @@ CharacterVector check_transaction()
 //' overwrite the previous prepared statement. The lifetime of
 //' a prepared statement is the lifetime of the current connection
 //' or transaction.
+//' 
+//' @note One can use pure SQL to achieve the same result and
+//' \code{execute_prepared} will work on any prepared statement regardless
+//' of whether it was defined using \code{prepare} or directly with
+//' \code{\link{query}}.
+//' 
+//' It is generally a good idea to wrap \code{prepare}--\code{execute_prepared}
+//' in a transaction. If not in a transaction, you cannot rollback any updates
+//' and it will be much slower as PostgreSQL initiates a transaction-per-query
+//' by default.
+//' 
+//' @return A status string.
+//' 
+//' In the case of \code{execute_prepared} the status of the last command
+//' executed. In case of error, the loop will terminate prematurely and
+//' the status string will contain the error message.
 //' 
 //' @author Timothy H. Keitt
 //' 

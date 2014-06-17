@@ -8,8 +8,8 @@ Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
 Description: Allows adhoc queries and reading and
     writing data frames to and from a database.
 License: GPL
-URL: http://www.keittlab.org/, http://www.postgresql.org/,
-    https://github.com/thk686/pqr
+URL: http://www.postgresql.org/, https://github.com/thk686/pqr,
+    http://www.keittlab.org/
 Imports:
     Rcpp (>= 0.11.1),
     uuid (>= 0.1-1)
