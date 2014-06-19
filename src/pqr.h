@@ -304,6 +304,7 @@ static CharacterVector get_result_status()
   return out;
 }
 
+/*
 void raise_condition(const std::string& msg,
                      const std::string& type)
 {
@@ -314,5 +315,6 @@ void raise_condition(const std::string& msg,
   Function stopper("stop");
   stopper(cond);
 }
+*/
 
 #endif // __EZPG_H__

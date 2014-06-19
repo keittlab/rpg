@@ -75,17 +75,18 @@ This means there are no connection objects to save and reload as invalid null po
     ````
     library(pqr)
     connect()
-    async_query("select * from bigtab1, bigtab2")
+    # eg some big join
+    async_query("select bigtab1.id from bigtab1, bigtab2")
     Sys.sleep(5)
-    status = tryCatch(async_status(),
-                      BUSY = function(x) { cancel(); finish_async(); x },
-                      DONE = function(x) x)
-    if ( status == PGRES_TUPLES_OK ) res = fetch()
+    res = switch(async_status(),
+                 BUSY = { cancel(); NULL },
+                 PGRES_TUPLES_OK = fetch(),
+                 NULL)
     finish_async()
     ````
-The `async_status` call will throw a `BUSY` condition if the server is still working
-or a `DONE` condition if results are ready. You can attempt to cancel a command
-in progress using `cancel`.
+The `async_status` call will return `BUSY` condition if the server is still working.
+A normal status string is returned if results are ready. `DONE` is returned if there
+is nothing more to fetch. You can attempt to cancel a command in progress using `cancel`.
 
 Installation
 ------------

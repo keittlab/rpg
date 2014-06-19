@@ -682,22 +682,12 @@ List show_conn_stack()
 //' async_query("select a.* from mtcars a, mtcars b")
 //' repeat
 //' {
-//'   status = tryCatch(async_status(),
-//'                     BUSY = function(x)
-//'                     {
-//'                       cat("busy...\n")
-//'                       return(x)
-//'                     },
-//'                     DONE = function(x)
-//'                     {
-//'                       cat("no more results\n")
-//'                       x
-//'                     },
-//'                     error = function(x) x)
-//'   if ( inherits(status, "error") ) break
-//'   if ( inherits(status, "DONE") ) break
+//'   status = async_status()
+//'   if ( status != "BUSY" ) break
+//'   cat("busy...\n")
 //'   Sys.sleep(1)
 //' }
+//' print(status)
 //' print(head(fetch()))
 //' finish_async()
 //' Sys.sleep(5)
@@ -709,28 +699,21 @@ List show_conn_stack()
 //' count = 0
 //' repeat
 //' {
-//'   status = tryCatch(async_status(),
-//'                     BUSY = function(x)
-//'                     {
-//'                       if ( count > 2 )
-//'                       {
-//'                         cat("calling cancel...\n")
-//'                         cancel()
-//'                       }
-//'                       cat("busy...\n")
-//'                       return(x)
-//'                     },
-//'                     DONE = function(x)
-//'                     {
-//'                       cat("no more results\n")
-//'                       x
-//'                     },
-//'                     error = function(x) x,
-//'                     finally = {count = count + 1})
-//'   if ( inherits(status, "error") ) break
-//'   if ( inherits(status, "DONE") ) break
+//'   status = async_status()
+//'   if ( status == "BUSY" )
+//'   {
+//'     if ( count > 2 )
+//'     {
+//'       cat("calling cancel...\n")
+//'       cancel()
+//'     }
+//'   }
+//'   else break
+//'   cat("busy... \n")
 //'   Sys.sleep(1)
+//'   count = count + 1
 //' }
+//' print(status)
 //' finish_async()
 //' query("rollback")
 //' 
@@ -739,9 +722,9 @@ List show_conn_stack()
 //' sql1 = "select mpg from mtcars limit 3"
 //' sql2 = "select cyl from mtcars limit 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
-//' print(try(async_status()))
+//' print(async_status())
 //' print(fetch())
-//' print(try(async_status()))
+//' print(async_status())
 //' print(fetch())
 //' query("rollback")
 //' 
@@ -767,12 +750,14 @@ CharacterVector async_status()
 {
   if ( PQconsumeInput(conn) == 0 )
     stop(PQerrorMessage(conn));
-  if ( PQisBusy(conn) == 1 )
-    raise_condition("connection is not ready", "BUSY");
+  if ( PQisBusy(conn) == 1 ) return "BUSY";
   PGresult *r = PQgetResult(conn);
-  if ( r ) set_res(r);
-  else raise_condition("no more results", "DONE");
-  return get_result_status();
+  if ( r )
+  {
+    set_res(r);
+    return get_result_status();
+  }
+  else return "DONE";
 }
 
 //' @export
