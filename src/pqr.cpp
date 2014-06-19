@@ -148,9 +148,10 @@ SEXP get_conn_info_()
 CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
 {
   check_conn();
-  if ( PQprotocolVersion(conn) > 2 && ! Rf_isNull(pars) )
+  if ( Rf_isNull(pars) )
+    set_res(PQexec(conn, sql));
+  else
     exec_params(sql, pars);
-  else set_res(PQexec(conn, sql));
   return get_result_status();
 }
 
@@ -621,3 +622,177 @@ List show_conn_stack()
   out.attr("class") = "data.frame";
   return out;
 }
+
+//' Asynchronous query processing
+//' 
+//' Manage an asynchronous query
+//' 
+//' @param sql a query string
+//' @param pars a vector of parameters
+//' 
+//' @details
+//' These functions expose the asynchronous query interface from
+//' \code{libpq}. The function \code{async_query} issues a query. Its
+//' call is identical to \code{\link{query}} except that it will return
+//' immediately. When the issued command is ready, the function
+//' \code{async_status} will return a query status object exactly
+//' as \code{\link{query}}. Otherwise it will raise the condition \code{BUSY}.
+//' Use \code{\link{tryCatch}} to catch the condition when scripting.
+//' 
+//' If \code{async_status} does not raise an exception, it must be called
+//' repeatedly until is raises the condition \code{DONE}. Or you must call
+//' \code{finish_async} to release all results. Otherwise some result objects
+//' will leak, at least until the connection is closed.
+//' 
+//' You can call \code{cancel} at any time to request the server to stop
+//' processing the query. It may or may not obey depending on the situation.
+//' An exception will be raised if there is an error occurs calling
+//' \code{cancel}.
+//' 
+//' @return
+//' \code{async_query} true if query was successfully sent (an invalid query
+//' will still return true)
+//' \code{async_status} a results status object, possibly indicating an
+//' invalid query
+//' 
+//' @author Timothy H. Keitt
+//'  
+//' @examples
+//' \dontrun{
+//' # try connecting to default database
+//' if ( connect() == "CONNECTION_BAD" )
+//' {
+//'  system("createdb -w -e")
+//'  if ( connect() == "CONNECTION_BAD" )
+//'    stop("Cannot connect to database")
+//' }
+//' 
+//' # for kicks work in a schema
+//' query("drop schema if exists pqrtesting cascade")
+//' query("create schema pqrtesting")
+//' query("set search_path to pqrtesting")
+//' 
+//' # write data frame contents
+//' data(mtcars)
+//' write_table(mtcars)
+//' 
+//' # async processing on smallish result
+//' # this wont be interesting if your machine is very fast
+//' query("begin")
+//' async_query("select a.* from mtcars a, mtcars b")
+//' repeat
+//' {
+//'   status = tryCatch(async_status(),
+//'                     BUSY = function(x)
+//'                     {
+//'                       cat("busy...\n")
+//'                       return(x)
+//'                     },
+//'                     DONE = function(x)
+//'                     {
+//'                       cat("no more results\n")
+//'                       x
+//'                     },
+//'                     error = function(x) x)
+//'   if ( inherits(status, "error") ) break
+//'   if ( inherits(status, "DONE") ) break
+//'   Sys.sleep(1)
+//' }
+//' print(head(fetch()))
+//' finish_async()
+//' Sys.sleep(5)
+//' query("rollback")
+//' 
+//' # async processing on larger result
+//' query("begin")
+//' async_query("select a.* from mtcars a, mtcars b, mtcars c")
+//' count = 0
+//' repeat
+//' {
+//'   status = tryCatch(async_status(),
+//'                     BUSY = function(x)
+//'                     {
+//'                       if ( count > 2 )
+//'                       {
+//'                         cat("calling cancel...\n")
+//'                         cancel()
+//'                       }
+//'                       cat("busy...\n")
+//'                       return(x)
+//'                     },
+//'                     DONE = function(x)
+//'                     {
+//'                       cat("no more results\n")
+//'                       x
+//'                     },
+//'                     error = function(x) x,
+//'                     finally = {count = count + 1})
+//'   if ( inherits(status, "error") ) break
+//'   if ( inherits(status, "DONE") ) break
+//'   Sys.sleep(1)
+//' }
+//' finish_async()
+//' query("rollback")
+//' 
+//' # you can multiplex queries with async_query
+//' query("begin")
+//' sql1 = "select mpg from mtcars limit 3"
+//' sql2 = "select cyl from mtcars limit 4"
+//' async_query(paste(sql1, sql2, sep = "; "))
+//' print(try(async_status()))
+//' print(fetch())
+//' print(try(async_status()))
+//' print(fetch())
+//' query("rollback")
+//' 
+//' # finish up
+//' disconnect()} 
+//' 
+//' @export
+//' @rdname async
+// [[Rcpp::export]]
+bool async_query(const char* sql = "", SEXP pars = R_NilValue)
+{
+  check_conn();
+  if ( Rf_isNull(pars) )
+    return PQsendQuery(conn, sql) == 1;
+  else
+    return send_exec_params(sql, pars) == 1;
+}
+
+//' @export
+//' @rdname async
+// [[Rcpp::export]]
+CharacterVector async_status()
+{
+  if ( PQconsumeInput(conn) == 0 )
+    stop(PQerrorMessage(conn));
+  if ( PQisBusy(conn) == 1 )
+    raise_condition("connection is not ready", "BUSY");
+  PGresult *r = PQgetResult(conn);
+  if ( r ) set_res(r);
+  else raise_condition("no more results", "DONE");
+  return get_result_status();
+}
+
+//' @export
+//' @rdname async
+// [[Rcpp::export]]
+void cancel()
+{
+  char buff[256];
+  memset(buff, '\0', 256);
+  PGcancel *obj = PQgetCancel(conn);
+  int i = PQcancel(obj, buff, 256);
+  PQfreeCancel(obj);
+  if ( !i ) stop(buff);
+}
+
+//' @export
+//' @rdname async
+// [[Rcpp::export]]
+void finish_async()
+{
+  clear_res();
+}
+

@@ -71,6 +71,22 @@ finalizers, etc.
     ````
 This means there are no connection objects to save and reload as invalid null pointers. All state lives only for the current session.
 
+6. Use the asynchronous query interface of `libpq`.
+    ````
+    library(pqr)
+    connect()
+    async_query("select * from bigtab1, bigtab2")
+    Sys.sleep(5)
+    status = tryCatch(async_status(),
+                      BUSY = function(x) { cancel(); finish_async(); x },
+                      DONE = function(x) x)
+    if ( status == PGRES_TUPLES_OK ) res = fetch()
+    finish_async()
+    ````
+The `async_status` call will throw a `BUSY` condition if the server is still working
+or a `DONE` condition if results are ready. You can attempt to cancel a command
+in progress using `cancel`.
+
 Installation
 ------------
 

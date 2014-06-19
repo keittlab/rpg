@@ -1,9 +1,8 @@
 get_pg_type = function(x)
 {
-  switch(class(x),
-         numeric = switch(typeof(x),
-                          integer = "integer",
-                          "double precision"),
+  switch(typeof(x),
+         integer = "integer",
+         double = "double precision",
          logical = "boolean",
          Date = "date",
          "text")

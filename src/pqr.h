@@ -17,8 +17,11 @@ static std::vector<PGconn*> conn_stack;
 
 static void clear_res()
 {
-  PQclear(res);
-  res = NULL;
+  while ( res )
+  {
+    PQclear(res);
+    res = PQgetResult(conn);
+  }
 }
 
 static void set_res(PGresult* x)
@@ -69,19 +72,6 @@ static void clear_all()
   clear_conn();
 }
 
-static void cancel()
-{
-  Rcout << "Calling PQcancel... " << std::flush;
-  char buff[256];
-  memset(buff, '\0', 256);
-  PGcancel *obj = PQgetCancel(conn);
-  int i = PQcancel(obj, buff, 256);
-  PQfreeCancel(obj);
-  if ( i ) Rcout << "success." << std::endl;
-  else Rcout << "failed." << std::endl
-             << buff << std::endl;
-}
-
 static std::vector<const char*>
 charvec_to_vec_char(CharacterVector x, const bool null_terminate = false)
 {
@@ -102,6 +92,8 @@ static void setup_connection(CharacterVector keywords, CharacterVector values)
   std::vector<const char*> kw = charvec_to_vec_char(keywords, true),
                            vals = charvec_to_vec_char(values, true);
   set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
+  if ( PQprotocolVersion(conn) < 3 )
+    stop("PostgreSQL messaging protocol version < 3 not supported");
   if ( PQstatus(conn) == CONNECTION_OK )
     PQsetNoticeProcessor(conn, pqr_notice_processor, NULL);
 }
@@ -186,7 +178,13 @@ static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
   return out;
 }
 
-static void exec_params(const char* sql = "", SEXP pars = R_NilValue)
+static int send_exec_params(const char* sql, SEXP pars)
+{
+  std::vector<const char*> vals = c_str_vec_from_sexp(pars);
+  return PQsendQueryParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0);  
+}
+
+static void exec_params(const char* sql, SEXP pars)
 {
   std::vector<const char*> vals = c_str_vec_from_sexp(pars);
   set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
@@ -304,6 +302,17 @@ static CharacterVector get_result_status()
   out.attr("command.status") = wrap_string(PQcmdStatus(res));
   out.attr("class") = "pq.status";
   return out;
+}
+
+void raise_condition(const std::string& msg,
+                     const std::string& type)
+{
+  List cond;
+  cond["message"] = msg;
+  cond["call"] = R_NilValue;
+  cond.attr("class") = CharacterVector::create(type, "condition");
+  Function stopper("stop");
+  stopper(cond);
 }
 
 #endif // __EZPG_H__
