@@ -251,6 +251,10 @@ describe_table = function(tablename, schemaname = NULL)
 #' at any point, the transaction will be rolled back and the database
 #' unaffected.
 #' 
+#' Also, \code{write_table} uses SQL \code{INSERT} statements and as such
+#' will be slow for large tables. You are much better off bulk loading data
+#' useing the \code{COPY} command outside of \code{R}.
+#' 
 #' @author Timothy H. Keitt
 #' 
 #' @examples

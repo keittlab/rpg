@@ -15,13 +15,25 @@ static std::FILE* tracef = NULL;
 
 static std::vector<PGconn*> conn_stack;
 
+static void cancel_(const bool stop_on_error = false)
+{
+  char buff[256];
+  memset(buff, '\0', 256);
+  PGcancel *obj = PQgetCancel(conn);
+  int i = PQcancel(obj, buff, 256);
+  PQfreeCancel(obj);
+  if ( !i && stop_on_error ) stop(buff);
+}
+
 static void clear_res()
 {
-  while ( res )
+  // Avoid blocking on PQgetResult
+  cancel_();
+  do
   {
     PQclear(res);
     res = PQgetResult(conn);
-  }
+  } while ( res );
 }
 
 static void set_res(PGresult* x)
@@ -92,10 +104,12 @@ static void setup_connection(CharacterVector keywords, CharacterVector values)
   std::vector<const char*> kw = charvec_to_vec_char(keywords, true),
                            vals = charvec_to_vec_char(values, true);
   set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
-  if ( PQprotocolVersion(conn) < 3 )
-    stop("PostgreSQL messaging protocol version < 3 not supported");
   if ( PQstatus(conn) == CONNECTION_OK )
+  {
+    if ( PQprotocolVersion(conn) < 3 )
+      stop("PostgreSQL messaging protocol version < 3 not supported");
     PQsetNoticeProcessor(conn, pqr_notice_processor, NULL);
+  }
 }
 
 static void check_conn()

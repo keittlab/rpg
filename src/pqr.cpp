@@ -643,15 +643,21 @@ List show_conn_stack()
 //' If \code{async_status} does not return \code{"DONE"}, then
 //' \code{finish_async} must be called to release all results. Otherwise some 
 //' result objects will leak, at least until the connection is closed. Note
-//' that a call to \code{finish_async} will block until the server is finished
-//' with the query. You must call \code{cancel} before calling
-//' \code{finish_async} to avoid waiting for the entire query to be processed.
+//' that a call to \code{finish_async} may block until the server is finished
+//' processing the command. It calls \code{cancel} internally but there is
+//' no guarantee the command will abort.
 //' 
 //' @return
-//' \code{async_query} true if query was successfully sent (an invalid query
+//' \code{async_query}: true if query was successfully sent (an invalid query
 //' will still return true)
-//' \code{async_status} a results status object, possibly indicating an
+//' \code{async_status}: a results status object, possibly indicating an
 //' invalid query
+//' 
+//' @note In practice, you will be much better off using \code{\link{cursor}}
+//' as that will usually return very quickly even for large queries, and has
+//' the advantage of retrieving the results in chunks. You can call \code{cancel}
+//' while a cursor is active. It will simply return \code{PGRES_FATAL_ERROR} is
+//' the \code{cancel} is effective.
 //' 
 //' @author Timothy H. Keitt
 //'  
@@ -720,10 +726,11 @@ List show_conn_stack()
 //' sql1 = "select mpg from mtcars limit 3"
 //' sql2 = "select cyl from mtcars limit 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
-//' print(async_status())
+//' while ( async_status() == "BUSY" ) NULL
 //' print(fetch())
-//' print(async_status())
+//' while ( async_status() == "BUSY" ) NULL
 //' print(fetch())
+//' finish_async()
 //' query("rollback")
 //' 
 //' # finish up
@@ -758,17 +765,13 @@ CharacterVector async_status()
   else return "DONE";
 }
 
+//' @param stop_on_error call \code{\link{stop}} if cancel request cannot be issued
 //' @export
 //' @rdname async
 // [[Rcpp::export]]
-void cancel()
+void cancel(const bool stop_on_error = true)
 {
-  char buff[256];
-  memset(buff, '\0', 256);
-  PGcancel *obj = PQgetCancel(conn);
-  int i = PQcancel(obj, buff, 256);
-  PQfreeCancel(obj);
-  if ( !i ) stop(buff);
+  cancel_(stop_on_error);
 }
 
 //' @export
