@@ -34,7 +34,7 @@ database packages.
     ````
 
 3. Simple access to database cursors. This is the way you were supposed to interact
-with your database. Basically a cursor is a prepared query that return a limited number
+with your database. Basically a cursor is a prepared query that returns a limited number
 of rows on demand. This is conveniently wrapped in an R iterator from the iterators
 package.
     ````
@@ -53,9 +53,11 @@ do parallel computing with `cursor`. See `help("cursor")` for an example.
 4. Simple access to execution of prepared statements.
     ````
     library(pqr)
+    query("begin transaction")
     prepare("insert into mytab (a, b, c) values ($1, $2, $3)")
     params = matrix(rnorm(300), 100)
     execute_prepared(params)
+    query("commit transaction")
     ````
 The call to `execute_prepared` evalutes the prepared statement for each row of the
 supplied parameters. This evaluation loop is in C++.
