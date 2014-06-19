@@ -636,18 +636,16 @@ List show_conn_stack()
 //' call is identical to \code{\link{query}} except that it will return
 //' immediately. When the issued command is ready, the function
 //' \code{async_status} will return a query status object exactly
-//' as \code{\link{query}}. Otherwise it will raise the condition \code{BUSY}.
-//' Use \code{\link{tryCatch}} to catch the condition when scripting.
+//' as \code{\link{query}}. Otherwise it will return \code{"BUSY"} to
+//' indicate the server has not finished or \code{"DONE"} to indicate
+//' there is nothing more to fetch.
 //' 
-//' If \code{async_status} does not raise an exception, it must be called
-//' repeatedly until is raises the condition \code{DONE}. Or you must call
-//' \code{finish_async} to release all results. Otherwise some result objects
-//' will leak, at least until the connection is closed.
-//' 
-//' You can call \code{cancel} at any time to request the server to stop
-//' processing the query. It may or may not obey depending on the situation.
-//' An exception will be raised if there is an error occurs calling
-//' \code{cancel}.
+//' If \code{async_status} does not return \code{"DONE"}, then
+//' \code{finish_async} must be called to release all results. Otherwise some 
+//' result objects will leak, at least until the connection is closed. Note
+//' that a call to \code{finish_async} will block until the server is finished
+//' with the query. You must call \code{cancel} before calling
+//' \code{finish_async} to avoid waiting for the entire query to be processed.
 //' 
 //' @return
 //' \code{async_query} true if query was successfully sent (an invalid query
