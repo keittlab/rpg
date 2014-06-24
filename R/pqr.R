@@ -111,16 +111,33 @@ fetch = function(sql = "", pars = NULL)
   else res
 }
 
+#' PostgreSQL shell
+#' 
+#' Run PostgreSQL's psql shell interactively
+#' 
 #' @param psql_opts a character string passed to the psql command
+#' 
 #' @details
 #' The \code{psql} function repeatedly queries for input and pipes it to
-#' PostgreSQL's psql command. It will terminate on an empty string. You can
-#' type psql's escape commands as usual. If \code{psql_opts} is an empty
-#' string, then an attempt will be made to supply suitable options based
-#' on the current connection. If there is no active connection, psql will
-#' fallback to complied in defaults. If \code{psql_opts} is not an empty
-#' string, then it will be used untouched.
-#' @rdname query
+#' PostgreSQL's psql command. It will terminate on \code{\\q} or empty
+#' input.
+#' 
+#' If \code{psql_opts} is an empty string, then an attempt will be made to
+#' supply suitable options based on the current connection. If there is no
+#' active connection, psql will fallback to complied in defaults. If
+#' \code{psql_opts} is not an empty string, then it will be passed as is to
+#' psql.
+#' 
+#' You can type psql's escape commands as usual. Try \code{\?}. You
+#' cannot use \code{\\e} or \code{\\ef} to evoke an editor. Doing strange
+#' things with \code{\!} will likely hang the R session.
+#' 
+#' Unfortunately it is probably impossible to enable GNU readline support
+#' so for example up-arrow will recall your R commands, not the psql
+#' commands entered. You can always call psql from a terminal.
+#' 
+#' @author Timothy H. Keitt
+#' 
 #' @export
 psql = function(psql_opts = "")
 {
@@ -128,18 +145,19 @@ psql = function(psql_opts = "")
   if ( nchar(psql_path) == 0 ) stop("psql not found")
   psql_opts = proc_psql_opts(psql_opts)
   con = pipe(paste(psql_path, psql_opts))
+  on.exit(close(con))
   repeat
   {
     inp = readline("psql:> ")
     if ( nchar(inp) && inp != "\\q" )
     {
-      writeLines(inp, con)
-      flush(con)
+      if ( inp %in% c("\\e", "\\ef") )
+        cat("Cannot evoke editor\n")
+      else
+        writeLines(inp, con)
     }
-    else
-      break
+    else break
   }
-  close(con)
 }
 
 #' PostgreSQL database information
@@ -151,6 +169,8 @@ psql = function(psql_opts = "")
 #' @return \code{list_tables}: a vector of table names or a data frame
 #' 
 #' @author Timothy H. Keitt
+#' 
+#' @seealso \code{\link{psql}}
 #' 
 #' @examples
 #' \dontrun{

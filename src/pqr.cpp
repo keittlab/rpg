@@ -97,8 +97,13 @@ SEXP get_conn_info_()
   info["socket"] = PQsocket(conn);
   info["server.pid"] = PQbackendPID(conn);
   info["password.needed"] = PQconnectionNeedsPassword(conn) == 1;
-  info["password.supplied"] = PQconnectionUsedPassword(conn) == 1;  
+  info["password.supplied"] = PQconnectionUsedPassword(conn) == 1;
+  info["password.used"] = wrap_string(PQpass(conn));
+  #ifdef USE_SSL
   info["encrypted"] = PQgetssl(conn) != NULL;
+  #else
+  info["encrypted"] = false;
+  #endif
   info["server.encoding"] = fetch_par("server_encoding");
   info["client.encoding"] = fetch_par("client_encoding");
   info["application.name"] = fetch_par("application_name");
