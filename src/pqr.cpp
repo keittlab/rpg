@@ -139,6 +139,8 @@ SEXP get_conn_info_()
 //' 
 //' @author Timothy H. Keitt
 //' 
+//' @seealso \code{\link{psql}}
+//' 
 //' @examples
 //' \dontrun{
 //' query("begin")
@@ -712,7 +714,7 @@ List show_conn_stack()
 //' print(status)
 //' print(head(fetch()))
 //' finish_async()
-//' Sys.sleep(5)
+//' Sys.sleep(1)
 //' 
 //' # async processing on larger result
 //' async_query("select a.* from mtcars a, mtcars b, mtcars c")

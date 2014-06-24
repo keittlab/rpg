@@ -166,26 +166,25 @@ run_examples = function()
   eval(example(list_tables, run = T), globalenv())
   eval(example(write_table, run = T), globalenv())
   eval(example(cursor, run = T), globalenv())
+  eval(example(copy_to, run = T), globalenv())
   invisible()
 }
 
-copy_from = function(what, psql_opts = "")
+setup_example_db = function()
 {
-  psql_path = Sys.which("psql")
-  if ( nchar(psql_path) == 0 ) stop("psql not found")
-  psql_opts = proc_psql_opts(psql_opts)
-  if ( grepl("select", what) ) what = paste("(", what, ")")
-  sql = paste("copy", what, "to stdout csv header")
-  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
-  read.csv(con, header = TRUE, na.string = "\\N", as.is = TRUE)
-}
-
-copy_to = function(x, tablename = deparse(substitute(x)), psql_opts = "")
-{
-  psql_path = Sys.which("psql")
-  if ( nchar(psql_path) == 0 ) stop("psql not found")
-  psql_opts = proc_psql_opts(psql_opts)
-  sql = paste("copy", tablename, "from stdin csv header")
-  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
-  write.csv(x, con, header = TRUE, na.string = "\\N", as.is = TRUE)
+  # try connecting to default database
+  if ( connect() == "CONNECTION_BAD" )
+  {
+   system("createdb -w -e")
+   if ( connect() == "CONNECTION_BAD" )
+     stop("Cannot connect to database")
+  }
+  
+  # we'll rollback at the end
+  query("begin")
+  
+  # for kicks work in a schema
+  query("drop schema if exists pqrtesting cascade")
+  query("create schema pqrtesting")
+  query("set search_path to pqrtesting")
 }

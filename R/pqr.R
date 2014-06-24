@@ -132,6 +132,12 @@ fetch = function(sql = "", pars = NULL)
 #' cannot use \code{\\e} or \code{\\ef} to evoke an editor. Doing strange
 #' things with \code{\!} will likely hang the R session.
 #' 
+#' There is no way to direclty enter a database password. If one is required,
+#' you can use a \href{http://www.postgresql.org/docs/9.1/static/libpq-pgpass.html}{password file}
+#'or \code{\link{set_conn_defaults}}. Note that neither solution
+#' is very secure, especially \code{\link{set_conn_defaults}} which will
+#' assign your password to an environment variable.
+#' 
 #' Unfortunately it is probably impossible to enable GNU readline support
 #' so for example up-arrow will recall your R commands, not the psql
 #' commands entered. You can always call psql from a terminal.
@@ -174,21 +180,8 @@ psql = function(psql_opts = "")
 #' 
 #' @examples
 #' \dontrun{
-#' # try connecting to default database
-#' if ( connect() == "CONNECTION_BAD" )
-#' {
-#'  system("createdb -w -e")
-#'  if ( connect() == "CONNECTION_BAD" )
-#'    stop("Cannot connect to database")
-#' }
-#' 
-#' # we'll rollback at the end
-#' query("begin")
-#' 
-#' # for kicks work in a schema
-#' query("drop schema if exists pqrtesting cascade")
-#' query("create schema pqrtesting")
-#' query("set search_path to pqrtesting")
+#' # helper util to setup a db for the example
+#' pqr:::setup_example_db()
 #' 
 #' # write data frame contents
 #' data(mtcars)
@@ -310,21 +303,8 @@ describe_table = function(tablename, schemaname = NULL)
 #' 
 #' @examples
 #' \dontrun{
-#' # try connecting to default database
-#' if ( connect() == "CONNECTION_BAD" )
-#' {
-#'  system("createdb -w -e")
-#'  if ( connect() == "CONNECTION_BAD" )
-#'    stop("Cannot connect to database")
-#' }
-#' 
-#' # we'll rollback at the end
-#' query("begin")
-#' 
-#' # for kicks work in a schema
-#' query("drop schema if exists pqrtesting cascade")
-#' query("create schema pqrtesting")
-#' query("set search_path to pqrtesting")
+#' # helper util to setup a db for the example
+#' pqr:::setup_example_db()
 #' 
 #' # write data frame contents
 #' data(mtcars)
@@ -499,7 +479,7 @@ print.pg.trace.dump = function(x, ...)
 #' \code{\%dopar\%} operator as shown in the example below. You must
 #' establish a connection to the database on each node and in your current
 #' session because the call to \code{cursor} requires it. Note that the
-#' cursor\'s lifetime is the current transaction block, so if anything happens
+#' cursor's lifetime is the current transaction block, so if anything happens
 #' to the transaction or you call \code{END} or \code{ROLLBACK}, then the
 #' cursor will no longer function. Apparently a named SQL cursor is visible
 #' to any database session, as evidenced by the example below,
@@ -514,23 +494,10 @@ print.pg.trace.dump = function(x, ...)
 #' # example requires foreach
 #' if ( ! require(foreach, quietly = TRUE) )
 #'  stop("This example requires the \'foreach\' package")
-#' 
-#' # try connecting to default database
-#' if ( connect() == "CONNECTION_BAD" )
-#' {
-#'  system("createdb -w -e")
-#'  if ( connect() == "CONNECTION_BAD" )
-#'    stop("Cannot connect to database")
-#' }
-#' 
-#' # we'll rollback at the end
-#' query("begin")
-#' 
-#' # for kicks work in a schema
-#' query("drop schema if exists pqrtesting cascade")
-#' query("create schema pqrtesting")
-#' query("set search_path to pqrtesting")
-#' 
+#'
+#' # helper util to setup a db for the example
+#' pqr:::setup_example_db()
+#'  
 #' # write data frame contents
 #' data(mtcars)
 #' write_table(mtcars, row_names = "id", pkey = "id")
@@ -669,4 +636,107 @@ reset_conn_defaults = function()
     if ( length(v) && nchar(v) )
       Sys.unsetenv(v)
 }
+
+#' Bulk read and write
+#' 
+#' Read from and write to a database using COPY
+#' 
+#' @param what a table name or sql query string
+#' @param psql_opt passed directly to the psql command line
+#' 
+#' @details
+#' These functions use the SQL COPY command and therefore are much
+#' faster than \code{\link{write_table}} and possibly
+#' \code{\link{read_table}}. These functions also call PostgreSQL's
+#' psql command from the command line and will fail if it is not
+#' found on the search path.
+#' 
+#' Because these functions shell out to psql you do not need an
+#' active connection. By specifying \code{psql_opts} you can connect
+#' to any database without affecting the active connection. If you
+#' do not specify \code{psql_opts} an attempt will be made to use
+#' the active connection information. If that fails,
+#' psql will be called without any options.
+#' 
+#' @note These functions call \code{\link{read.csv}} and
+#' \code{\link{write.csv}} and so will suffer the same bandwidth
+#' limitations as those functions. I argue that is good enough.
+#' There is little point in reading and writing datasets too large
+#' for those functions in R. Better to bulk load using psql on
+#' the command line and then use \code{\link{cursor}} to read the
+#' data in small bits.
+#' 
+#' @author Timothy H. Keitt
+#' 
+#' @examples
+#' \dontrun{
+#' # example requires hflights
+#' if ( ! require(hflights, quietly = TRUE) )
+#'  stop("This example requires the \'hflights\' package")
+#'
+#' # helper util to setup a db for the example
+#' pqr:::setup_example_db()
+#'
+#' # big dataset
+#' data(hflights)
+#' dim(hflights)
+#' 
+#' # system.time({ write_table(hflights, overwrite = T) })
+#' # system.time({ invisible(read_table("hflights")) })
+#' system.time({ copy_to(hflights, overwrite = T) })
+#' system.time({ invisible(copy_from("hflights")) }) 
+#'         
+#' # cleanup and disconnect
+#' query("rollback")
+#' disconnect()}
+#' 
+#' @rdname copy
+#' @export
+copy_from = function(what, psql_opts = "")
+{
+  psql_path = Sys.which("psql")
+  if ( nchar(psql_path) == 0 ) stop("psql not found")
+  psql_opts = proc_psql_opts(psql_opts)
+  if ( grepl("select", what) ) what = paste("(", what, ")")
+  sql = paste("copy", what, "to stdout csv null \'NA\' header")
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  read.csv(con, header = TRUE, as.is = TRUE)
+}
+
+#' @param x a data frame
+#' @param tablename name of table to create
+#' @param schemaname create table in this schema
+#' @param overwrite if true drop tablename before creating
+#' @param append if true, do not create any table
+#' 
+#' @rdname copy
+#' @export
+copy_to = function(x, tablename,
+                   schemaname = NULL,
+                   overwrite = FALSE,
+                   append = FALSE,
+                   psql_opts = "")
+{
+  psql_path = Sys.which("psql")
+  if ( nchar(psql_path) == 0 ) stop("psql not found")
+  if ( missing(tablename) )
+    tablename = deparse(substitute(x))
+  tablename = dquote_esc(tablename)
+  tablename = set_schema(tablename, schemaname)
+  if ( overwrite )
+    query(paste("drop table if exists", tablename))
+  if ( ! append )
+  {
+    colnames = make.unique(names(x), "")
+    types = sapply(x, pg_type)
+    colspec = paste(dquote_esc(colnames), types, collapse = ", ")
+    status = query(paste("create table", tablename, "(", colspec, ")"))
+    if ( status == "PGRES_FATAL_ERROR" ) return(status)
+  }
+  psql_opts = proc_psql_opts(psql_opts)
+  sql = paste("copy", tablename, "from stdin csv null \'NA\' header")
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  write.csv(x, con, row.names = FALSE)
+}
+
 

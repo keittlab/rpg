@@ -15,7 +15,8 @@ Imports:
     uuid (>= 0.1-1)
 Suggests:
     foreach (>= 1.4.2),
-    doParallel (>= 1.0.0)
+    doParallel (>= 1.0.0),
+    hflights (>= 0.1)
 LinkingTo: Rcpp
 SystemRequirements: libpq
 Depends:
