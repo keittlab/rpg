@@ -152,14 +152,14 @@ CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
     set_res(PQexec(conn, sql));
   else
     exec_params(sql, pars);
-  return get_result_status();
+  return result_status();
 }
 
-//' @return \code{get_query_error} returns an error string
-//' @export get_query_error
+//' @return \code{query_error} returns an error string
+//' @export query_error
 //' @rdname query
 // [[Rcpp::export]]
-CharacterVector get_query_error()
+CharacterVector query_error()
 {
   CharacterVector err(PQresultErrorMessage(res));
   err.attr("class") = "pq.error.message";
@@ -181,15 +181,16 @@ CharacterMatrix fetch_matrix()
 // [[Rcpp::export]]
 List fetch_dataframe()
 {
-  List out;
   int nrow = PQntuples(res),
       ncol = PQnfields(res);
-  if ( nrow == 0 || ncol == 0 ) return out;
+  if ( nrow == 0 ||
+       ncol == 0 ) return List();
+  List out(ncol);
   CharacterVector names(ncol);
   for ( int col = 0; col < ncol; ++col )
   {
     std::string colname = PQfname(res, col);
-    out[colname] = fetch_column(col);
+    out[col] = fetch_column(col);
     names[col] = colname;
   }
   out.attr("row.names") = IntegerVector::create(NA_INTEGER, -nrow);
@@ -247,13 +248,13 @@ void untrace_conn(bool remove = false)
   clear_tracef();
 }
 
-//' @return \code{get_trace_filename}: the name of the file containing
+//' @return \code{trace_filename}: the name of the file containing
 //' trace information.
 //' 
 //' @rdname tracing
 //' @export
 // [[Rcpp::export]]
-const char* get_trace_filename()
+const char* trace_filename()
 {
   // I figure asking for the file name
   // is a good bet it will soon be read
@@ -300,6 +301,16 @@ List get_conn_defaults(const bool all = false)
 //' Various utility functions
 //' 
 //' @author Timothy H. Keitt
+//' 
+//' @examples
+//' \dontrun{
+//' libpq_version()
+//' encrypt_password("test", "tester")
+//' get_encoding()
+//' set_encoding("UTF8")
+//' set_error_verbosity("terse")
+//' set_error_verbosity("verbose")
+//' set_error_verbosity("default")}
 //' @rdname misc
 //' @export
 // [[Rcpp::export]]
@@ -461,14 +472,14 @@ CharacterVector prepare(const char* sql, const char* name = "")
 {
   check_conn();
   set_res(PQprepare(conn, name, sql, 0, NULL));
-  return get_result_status();  
+  return result_status();  
 }
 
 // [[Rcpp::export]]
 SEXP execute_prepared_(CharacterMatrix pars, const char* name = "")
 {
   exec_prepared_rows(pars, name);
-  return get_result_status();
+  return result_status();
 }
 
 // [[Rcpp::export]]
@@ -584,10 +595,10 @@ void swap_conn()
 //' @rdname stack
 //' @export
 // [[Rcpp::export]]
-void rotate_stack(const unsigned n = 1)
+void rotate_stack(const int n = 1)
 {
   int ss = conn_stack.size();
-  if ( ss > 1 )
+  if ( ss > 1 && n > 0 )
     std::rotate(conn_stack.begin(),
                 conn_stack.begin() + n % ss,
                 conn_stack.end());
@@ -671,6 +682,9 @@ List show_conn_stack()
 //'    stop("Cannot connect to database")
 //' }
 //' 
+//' # rollback changes at the end
+//' query("begin")
+//' 
 //' # for kicks work in a schema
 //' query("drop schema if exists pqrtesting cascade")
 //' query("create schema pqrtesting")
@@ -682,7 +696,6 @@ List show_conn_stack()
 //' 
 //' # async processing on smallish result
 //' # this wont be interesting if your machine is very fast
-//' query("begin")
 //' async_query("select a.* from mtcars a, mtcars b")
 //' repeat
 //' {
@@ -695,10 +708,8 @@ List show_conn_stack()
 //' print(head(fetch()))
 //' finish_async()
 //' Sys.sleep(5)
-//' query("rollback")
 //' 
 //' # async processing on larger result
-//' query("begin")
 //' async_query("select a.* from mtcars a, mtcars b, mtcars c")
 //' count = 0
 //' repeat
@@ -719,10 +730,9 @@ List show_conn_stack()
 //' }
 //' print(status)
 //' finish_async()
-//' query("rollback")
 //' 
-//' # you can multiplex queries with async_query
-//' query("begin")
+//' # you can run multiple queries with async_query
+//' query("rollback; begin")
 //' sql1 = "select mpg from mtcars limit 3"
 //' sql2 = "select cyl from mtcars limit 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
@@ -731,9 +741,9 @@ List show_conn_stack()
 //' while ( async_status() == "BUSY" ) NULL
 //' print(fetch())
 //' finish_async()
-//' query("rollback")
 //' 
 //' # finish up
+//' query("rollback")
 //' disconnect()} 
 //' 
 //' @export
@@ -760,7 +770,7 @@ CharacterVector async_status()
   if ( r )
   {
     set_res(r);
-    return get_result_status();
+    return result_status();
   }
   else return "DONE";
 }

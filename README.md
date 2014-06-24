@@ -73,7 +73,7 @@ finalizers, etc.
     ````
 This means there are no connection objects to save and reload as invalid null pointers. All state lives only for the current session.
 
-6. Use the asynchronous query interface of `libpq`.
+6. Simple access to the asynchronous query interface of `libpq`.
     ````
     library(pqr)
     connect()

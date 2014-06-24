@@ -309,7 +309,7 @@ static const char* tempfile()
   return as<const char*>(tf());
 }
 
-static CharacterVector get_result_status()
+static CharacterVector result_status()
 {
   CharacterVector out(PQresStatus(PQresultStatus(res)));
   out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
@@ -317,18 +317,5 @@ static CharacterVector get_result_status()
   out.attr("class") = "pq.status";
   return out;
 }
-
-/*
-void raise_condition(const std::string& msg,
-                     const std::string& type)
-{
-  List cond;
-  cond["message"] = msg;
-  cond["call"] = R_NilValue;
-  cond.attr("class") = CharacterVector::create(type, "condition");
-  Function stopper("stop");
-  stopper(cond);
-}
-*/
 
 #endif // __EZPG_H__

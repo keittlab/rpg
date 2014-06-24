@@ -53,7 +53,7 @@ NULL
 #' acceptable however to call \code{connect} within each
 #' forked instance.
 #' 
-#' Be careful with \code{ping} as it will attemp to connect to
+#' Be careful with \code{ping} as it will attempt to connect to
 #' the database server on a remote host, which might not be
 #' appreciated by a remote administator. Also, \code{ping} may
 #' seem to hang for a long time. It is just polling the connection
@@ -109,6 +109,37 @@ fetch = function(sql = "", pars = NULL)
   if ( res == "PGRES_TUPLES_OK" )
     fetch_dataframe()
   else res
+}
+
+#' @param psql_opts a character string passed to the psql command
+#' @details
+#' The \code{psql} function repeatedly queries for input and pipes it to
+#' PostgreSQL's psql command. It will terminate on an empty string. You can
+#' type psql's escape commands as usual. If \code{psql_opts} is an empty
+#' string, then an attempt will be made to supply suitable options based
+#' on the current connection. If there is no active connection, psql will
+#' fallback to complied in defaults. If \code{psql_opts} is not an empty
+#' string, then it will be used untouched.
+#' @rdname query
+#' @export
+psql = function(psql_opts = "")
+{
+  psql_path = Sys.which("psql")
+  if ( nchar(psql_path) == 0 ) stop("psql not found")
+  psql_opts = proc_psql_opts(psql_opts)
+  con = pipe(paste(psql_path, psql_opts))
+  repeat
+  {
+    inp = readline("psql:> ")
+    if ( nchar(inp) && inp != "\\q" )
+    {
+      writeLines(inp, con)
+      flush(con)
+    }
+    else
+      break
+  }
+  close(con)
 }
 
 #' PostgreSQL database information
@@ -253,7 +284,7 @@ describe_table = function(tablename, schemaname = NULL)
 #' 
 #' Also, \code{write_table} uses SQL \code{INSERT} statements and as such
 #' will be slow for large tables. You are much better off bulk loading data
-#' useing the \code{COPY} command outside of \code{R}.
+#' using the \code{COPY} command outside of \code{R}.
 #' 
 #' @author Timothy H. Keitt
 #' 
@@ -320,7 +351,7 @@ write_table = function(x,
   x = handle_row_names(x, row_names)
   colnames = make.unique(names(x), "")
   if ( is.null(types) )
-    types = sapply(x, get_pg_type)
+    types = sapply(x, pg_type)
   else
     types = rep(types, ncol(x))
   if ( !is.null(pkey) )
@@ -346,7 +377,7 @@ write_table = function(x,
   types = as.csv(types)
   colnames = as.csv(colnames)
   if ( !is.na(check_transaction()) ) on.exit(query("end"))
-  spname = get_unique_name();
+  spname = unique_name();
   query(paste("savepoint", spname))
   if ( overwrite )
     query(paste("drop table if exists", tablename))
@@ -359,7 +390,7 @@ write_table = function(x,
     sqlpars = as.csv(sqlpars)
     sql = paste("insert into", tablename, "(", colnames, ")")
     sql = paste(sql, "values (", sqlpars, ")")
-    ssname = get_unique_name()
+    ssname = unique_name()
     pstatus = prepare(sql, ssname)
     if ( pstatus == "PGRES_FATAL_ERROR" )
     {
@@ -403,7 +434,7 @@ read_table = function(tablename,
   res = fetch(sql)
   if ( inherits(res, "pq.status" ) ) return(res) 
   if ( pkey_to_row_names && is.null(row_names) )
-    row_names = get_primary_key_name(tablename)
+    row_names = primary_key_name(tablename)
   if ( !is.null(row_names) )
   {
     row.names(res) = res[[row_names]]
@@ -412,6 +443,7 @@ read_table = function(tablename,
   res
 }
 
+#' @param warn if true, \code{\link{readLines}} will issue warnings
 #' @param ... passed to \code{\link{readLines}}
 #' 
 #' @details \code{dump_conn_trace} invokes \code{\link{readLines}} on
@@ -419,11 +451,11 @@ read_table = function(tablename,
 #' 
 #' @rdname tracing
 #' @export 
-dump_conn_trace = function(...)
+dump_conn_trace = function(warn = FALSE, ...)
 {
-  con = get_trace_filename()
+  con = trace_filename()
   if ( is.null(con) || file.access(con, 4) == -1 ) return(NULL)
-  out = readLines(con, ...)
+  out = readLines(con, warn = warn, ...)
   class(out) = "pg.trace.dump"
   return(out)
 }
@@ -454,7 +486,8 @@ print.pg.trace.dump = function(x, ...)
 #' even though it is declared within a transaction. This is not stated
 #' explicitely in the PostgreSQL documentation.
 #' 
-#' @note Don't do parallel processing in RStudio.
+#' @note There are some reports of issues using multicore (forking) with
+#' RStudio.
 #'  
 #' @examples
 #' \dontrun{
@@ -528,7 +561,7 @@ print.pg.trace.dump = function(x, ...)
 cursor = function(sql, by = 1)
 {
   check_transaction();
-  cname = get_unique_name();
+  cname = unique_name();
   status = query(paste("declare", cname, "cursor for", sql))
   if ( status != "PGRES_COMMAND_OK" ) stop(status)
   f = function()

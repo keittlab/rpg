@@ -1,6 +1,10 @@
-get_pg_type = function(x)
+pg_type = function(x)
 {
-  switch(typeof(x),
+  switch(class(x),
+         numeric = switch(typeof(x),
+                          double = "double precision",
+                          integer = "integer",
+                          "text"),
          integer = "integer",
          double = "double precision",
          logical = "boolean",
@@ -94,7 +98,7 @@ handle_row_names = function(a, b)
   return(a)
 }
 
-get_primary_key_name = function(tablename)
+primary_key_name = function(tablename)
 {
   unlist(fetch("SELECT               
                   pg_attribute.attname as pkey
@@ -112,7 +116,7 @@ get_primary_key_name = function(tablename)
                   indisprimary", tablename))
 }
 
-get_unique_name = function()
+unique_name = function()
 {
   dquote_esc(uuid::UUIDgenerate())
 }
@@ -130,4 +134,57 @@ table_exists = function(table, schema = NULL)
 strip_quotes = function(x)
 {
   gsub("\"", "", x)
+}
+
+proc_psql_opts = function(psql_opts = "")
+{
+  if ( nchar(psql_opts) == 0 && get_conn_info("status.ok") )
+  {
+    host = get_conn_info("host")
+    dbnm = get_conn_info("dbname")
+    port = get_conn_info("port")
+    user = get_conn_info("user")
+    if ( !is.null(host) ) psql_opts = paste(psql_opts, "-h", host)
+    if ( !is.null(dbnm) ) psql_opts = paste(psql_opts, "-d", dbnm)
+    if ( !is.null(port) ) psql_opts = paste(psql_opts, "-p", port)
+    if ( !is.null(user) ) psql_opts = paste(psql_opts, "-U", user)
+    psql_opts = paste(psql_opts, "-w")
+  }
+  return(psql_opts)
+}
+
+run_examples = function()
+{
+  eval(example(ping, run = T), globalenv())
+  eval(example(connect, run = T), globalenv())
+  eval(example(query, run = T), globalenv())
+  eval(example(trace_conn, run = T), globalenv())
+  eval(example(libpq_version, run = T), globalenv())
+  eval(example(prepare, run = T), globalenv())
+  eval(example(push_conn, run = T), globalenv())
+  eval(example(async_query, run = T), globalenv())
+  eval(example(list_tables, run = T), globalenv())
+  eval(example(write_table, run = T), globalenv())
+  eval(example(cursor, run = T), globalenv())
+}
+
+copy_from = function(what, psql_opts = "")
+{
+  psql_path = Sys.which("psql")
+  if ( nchar(psql_path) == 0 ) stop("psql not found")
+  psql_opts = proc_psql_opts(psql_opts)
+  if ( grepl("select", what) ) what = paste("(", what, ")")
+  sql = paste("copy", what, "to stdout csv header")
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  read.csv(con, header = TRUE, na.string = "\\N", as.is = TRUE)
+}
+
+copy_to = function(x, tablename = deparse(substitute(x)), psql_opts = "")
+{
+  psql_path = Sys.which("psql")
+  if ( nchar(psql_path) == 0 ) stop("psql not found")
+  psql_opts = proc_psql_opts(psql_opts)
+  sql = paste("copy", tablename, "from stdout csv header")
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  write.csv(x, con, header = TRUE, na.string = "\\N", as.is = TRUE)
 }
