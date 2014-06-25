@@ -1,4 +1,4 @@
-Package: pqr
+Package: rpg
 Type: Package
 Title: Easy interface to advanced PostgreSQL features
 Version: 0.1
@@ -8,7 +8,7 @@ Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
 Description: Allows adhoc queries and reading and
     writing data frames to and from a database.
 License: GPL
-URL: http://www.postgresql.org/, https://github.com/thk686/pqr,
+URL: http://www.postgresql.org/, https://github.com/thk686/rpg,
     http://www.keittlab.org/
 Imports:
     Rcpp (>= 0.11.1),
