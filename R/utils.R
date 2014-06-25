@@ -166,24 +166,6 @@ run_examples = function()
   eval(example(write_table, run = T), globalenv())
   eval(example(cursor, run = T), globalenv())
   eval(example(copy_to, run = T), globalenv())
+  eval(example(savepoint, run = T), globalenv())
   invisible()
-}
-
-setup_example_db = function()
-{
-  # try connecting to default database
-  if ( connect() == "CONNECTION_BAD" )
-  {
-   system("createdb -w -e")
-   if ( connect() == "CONNECTION_BAD" )
-     stop("Cannot connect to database")
-  }
-  
-  # we'll rollback at the end
-  query("begin")
-  
-  # for kicks work in a schema
-  query("drop schema if exists pqrtesting cascade")
-  query("create schema pqrtesting")
-  query("set search_path to pqrtesting")
 }

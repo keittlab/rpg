@@ -111,6 +111,29 @@ fetch = function(sql = "", pars = NULL)
   else res
 }
 
+#' @param ... list of commands to be \code{\link{paste}d} together
+#' @details \code{execute} is a wrapper around \code{query}. It will raise
+#' an exception if the command does not complete. Exceptions can be caught with
+#' \code{\link{tryCatch}}. You cannot use a parameterized
+#' query with \code{execute}. Unlike \code{query} it will \code{\link{paste}} its
+#' arguments into a single string.
+#' @return \code{execute} the result status string
+#' @rdname query
+#' @export
+execute = function(...)
+{
+  status = query(paste(...))
+  if ( status == "PGRES_BAD_RESPONSE" )
+    stop("Fatal protocol error; check server")
+  if ( status == "PGRES_FATAL_ERROR" )
+  {
+    em = query_error()
+    if ( nchar(em) ) stop(em)
+    stop("Fatal error")
+  }
+  return(status)
+}
+
 #' PostgreSQL shell
 #' 
 #' Run PostgreSQL's psql shell interactively
@@ -180,17 +203,20 @@ psql = function(psql_opts = "")
 #' 
 #' @examples
 #' \dontrun{
-#' # helper util to setup a db for the example
-#' pqr:::setup_example_db()
-#' 
+#' # connect using defaults
+#' connect()
+#' sp = savepoint()
+#'  
 #' # write data frame contents
 #' data(mtcars)
 #' write_table(mtcars)
+#'  
+#' # get some information
 #' list_tables()
-#' describe_table("mtcars", "pqrtesting") 
+#' describe_table("mtcars")
 #' 
-#' # cleanup and disconnect
-#' query("rollback")
+#' #cleanup
+#' rollback(sp)
 #' disconnect()}
 #' 
 #' @rdname table-info
@@ -289,6 +315,8 @@ describe_table = function(tablename, schemaname = NULL)
 #' If \code{types} is not supplied, they will be computed from the classes and
 #' types of the columns of input.
 #' 
+#' \code{write_table} does not currently handle \code{NA} values correctly.
+#' 
 #' @return \code{write_table} the final query status
 #' 
 #' @note The entire process is wrapped within a transcation. On failure
@@ -299,13 +327,16 @@ describe_table = function(tablename, schemaname = NULL)
 #' will be slow for large tables. You are much better off bulk loading data
 #' using the \code{COPY} command outside of \code{R}.
 #' 
+#' @seealso \code{\link{copy_from}}
+#' 
 #' @author Timothy H. Keitt
 #' 
 #' @examples
 #' \dontrun{
-#' # helper util to setup a db for the example
-#' pqr:::setup_example_db()
-#' 
+#' # connect using defaults
+#' connect()
+#' sp = savepoint()
+#'  
 #' # write data frame contents
 #' data(mtcars)
 #' write_table(mtcars)
@@ -328,8 +359,8 @@ describe_table = function(tablename, schemaname = NULL)
 #' # get row names from primary key
 #' read_table("mtcars", pkey_to_row_names = T, limit = 3)
 #' 
-#' # cleanup and disconnect
-#' query("rollback")
+#' #cleanup
+#' rollback(sp)
 #' disconnect()}
 #' 
 #' @rdname table-io
@@ -376,11 +407,9 @@ write_table = function(x,
   }
   types = as.csv(types)
   colnames = as.csv(colnames)
-  if ( !is.na(check_transaction()) ) on.exit(query("end"))
-  spname = unique_name();
-  query(paste("savepoint", spname))
-  if ( overwrite )
-    query(paste("drop table if exists", tablename))
+  sp = savepoint()
+  on.exit(rollback(sp))
+  if ( overwrite ) execute("drop table if exists", tablename)
   sql = paste("create table", tablename, "(", types, ")")
   status = query(sql)
   if ( status == "PGRES_COMMAND_OK" )
@@ -392,22 +421,10 @@ write_table = function(x,
     sql = paste(sql, "values (", sqlpars, ")")
     ssname = unique_name()
     pstatus = prepare(sql, ssname)
-    if ( pstatus == "PGRES_FATAL_ERROR" )
-    {
-      query(paste("rollback to", spname))
-      return(pstatus)
-    }
+    if ( pstatus == "PGRES_FATAL_ERROR" ) return(pstatus)
     estatus = execute_prepared(x, ssname)
-    if ( estatus == "PGRES_FATAL_ERROR" )
-    {
-      query(paste("rollback to", spname))
-      return(estatus)
-    }
-    query(paste("release", spname))
-  }
-  else
-  {
-    query(paste("rollback to", spname))
+    if ( estatus == "PGRES_FATAL_ERROR" ) return(estatus)
+    on.exit(commit(sp))
   }
   return(status)
 }
@@ -495,12 +512,13 @@ print.pg.trace.dump = function(x, ...)
 #' if ( ! require(foreach, quietly = TRUE) )
 #'  stop("This example requires the \'foreach\' package")
 #'
-#' # helper util to setup a db for the example
-#' pqr:::setup_example_db()
+#' # connect using defaults
+#' connect()
+#' sp = savepoint()
 #'  
 #' # write data frame contents
 #' data(mtcars)
-#' write_table(mtcars, row_names = "id", pkey = "id")
+#' write_table(mtcars, row_names = "id", pkey = "id", overwrite = T)
 #' 
 #' # expand rows to columns 8 rows at a time
 #' x = foreach(i = cursor("select * from mtcars", 8),
@@ -536,12 +554,12 @@ print.pg.trace.dump = function(x, ...)
 #'  x$rows = NULL
 #'  print(noquote(x))
 #' }
-#'         
-#' # cleanup and disconnect
-#' query("rollback")
+#' 
+#' #cleanup
+#' rollback(sp)
 #' disconnect()}
 #' 
-#' @seealso \code{foreach}
+#' @seealso \code{foreach}, \code{\link{rollback}}
 #' 
 #' @author Timothy H. Keitt
 #' @export
@@ -549,8 +567,7 @@ cursor = function(sql, by = 1)
 {
   check_transaction();
   cname = unique_name();
-  status = query(paste("declare", cname, "cursor for", sql))
-  if ( status != "PGRES_COMMAND_OK" ) stop(status)
+  execute("declare", cname, "cursor for", sql)
   f = function()
   {
     res = fetch(paste("fetch", by, "from", cname))
@@ -656,7 +673,7 @@ reset_conn_defaults = function()
 #' to any database without affecting the active connection. If you
 #' do not specify \code{psql_opts} an attempt will be made to use
 #' the active connection information. If that fails,
-#' psql will be called without any options.
+#' psql will use default connection settings.
 #' 
 #' @note These functions call \code{\link{read.csv}} and
 #' \code{\link{write.csv}} and so will suffer the same bandwidth
@@ -737,4 +754,92 @@ copy_to = function(x, tablename,
   write.csv(x, con, row.names = FALSE)
 }
 
+#' Transaction support
+#' 
+#' Start, commit or rollback transactions or savepoints
+#' 
+#' @details
+#' These functions allow manipulation of database transaction states. If no
+#' \code{savepoint} object is supplied, then an attempt is made to commit or
+#' rollback the current transaction.
+#' 
+#' The \code{savepoint} function will initiate a transaction if one is not
+#' currently active. In that case, no actual PostgreSQL savepoint will be used.
+#' Rolling back the savepoint will rollback the initiated transaction. If a
+#' tranaction is active, then a named savepoint will be generated. You can
+#' \code{rollback} to the database state when \code{savepoint}
+#' was called or \code{commit} all changes.
+#' 
+#' @author Timothy H. Keitt
+#' 
+#' @examples
+#' \dontrun{
+#' connect()
+#' begin()
+#' sp1 = savepoint()
+#' 
+#' # nest savepoints
+#' sp2 = savepoint()
+#' data(mtcars)
+#' write_table(mtcars, "testtab", overwrite = TRUE)
+#' list_tables()
+#' rollback(sp2)
+#' 
+#' list_tables()
+#' # nest savepoints
+#' sp3 = savepoint()
+#' sp4 = savepoint()
+#' write_table(mtcars, "testtab", overwrite = TRUE)
+#' commit(sp4)
+#' list_tables()
+#' rollback(sp3)
+#' list_tables()
+#' 
+#' rollback(sp1)
+#' rollback()
+#' disconnect()}
+#' 
+#' @rdname transactions
+#' @export
+begin = function() execute("begin")
 
+#' @param savepoint an object produced by \code{savepoint}
+#' @rdname transactions
+#' @export
+commit = function(savepoint = NULL)
+{
+  if ( is.null(savepoint) )
+    execute("commit")
+  else
+    savepoint$commit()
+}
+
+#' @rdname transactions
+#' @export
+rollback = function(savepoint = NULL)
+{
+  if ( is.null(savepoint) )
+    execute("rollback")
+  else
+    savepoint$rollback()
+}
+
+#' @return \code{savepoint}: a savepoint object
+#' @rdname transactions
+#' @export
+savepoint = function()
+{
+  if ( check_transaction() )
+  {
+    spname = unique_name()
+    execute("savepoint", spname)
+    rollback = function() execute("rollback to", spname)
+    commit = function() execute("release", spname)
+  }
+  else
+  {
+    rollback = function() execute("rollback")
+    commit = function() execute("commit")
+  }
+  list(rollback = rollback, commit = commit)
+}

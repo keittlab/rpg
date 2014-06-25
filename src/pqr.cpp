@@ -371,21 +371,26 @@ void set_error_verbosity(std::string verbosity)
 }
 
 // [[Rcpp::export]]
-CharacterVector check_transaction()
+bool check_transaction()
 {
   check_conn();
   switch ( PQtransactionStatus(conn)  )
   {
     case PQTRANS_INERROR:
-      Rcout << "Error in current transaction: rolling back... done." << std::endl;
+      Rcout << "Error in current transaction: rolling back...";
       query("rollback");
+      Rcout << " done." << std::endl;
     case PQTRANS_IDLE:
-      Rcout << "Initiating new transaction block... done." << std::endl;
-      return query("begin");
+      Rcout << "Initiating new transaction block...";
+      query("begin");
+      Rcout << " done." << std::endl;
+      return false;
+    case PQTRANS_UNKNOWN:
+      stop("No active connection");
     default:
-      return NA_STRING;
+      return true;
   }
-  return NA_STRING; // compiler warning
+  return false; // compiler warning
 }
 
 //' Prepared queries
@@ -438,15 +443,8 @@ CharacterVector check_transaction()
 //' @examples
 //' \dontrun{
 //' # try connecting to default database
-//' if ( connect() == "CONNECTION_BAD" )
-//' {
-//'  system("createdb -w -e")
-//'  if ( connect() == "CONNECTION_BAD" )
-//'    stop("Cannot connect to database")
-//' }
-//' 
-//' # we'll rollback at the end
-//' query("begin")
+//' connect()
+//' sp = savepoint()
 //' 
 //' # for kicks work in a schema
 //' query("drop schema if exists pqrtesting cascade")
@@ -468,8 +466,8 @@ CharacterVector check_transaction()
 //' execute_prepared(mtcars, "test_statement")
 //' read_table(mtcars, limit = 5)
 //' 
-//' # cleanup and disconnect
-//' query("rollback")
+//' # cleanup
+//' rollback(sp)
 //' disconnect()}
 //' 
 //' @rdname prepare
@@ -514,26 +512,16 @@ int num_prepared_params(const char* name = "")
 //' @examples
 //' \dontrun{
 //' # try connecting to default database
-//' if ( connect() == "CONNECTION_BAD" )
-//' {
-//'  system("createdb -w -e")
-//'  if ( connect() == "CONNECTION_BAD" )
-//'    stop("Cannot connect to database")
-//' }
+//' connect()
 //' 
 //' # make some databases
 //' dbs = basename(c(tempfile(), tempfile(), tempfile()))
-//' sql = paste("create database", dbs)
-//' if ( any(sapply(sql, query) == "PGRES_FATAL_ERROR") )
-//' {
-//'   lapply(paste("drop database", dbs), query)
-//'   stop("Cannot create databases")
-//' }
-//' 
+//' lapply(paste("create database", dbs), execute)
+//'
 //' # connect
-//' connect(paste("dbname", dbs[1], sep = "=")); push_conn()
-//' connect(paste("dbname", dbs[2], sep = "=")); push_conn()
-//' connect(paste("dbname", dbs[3], sep = "=")); push_conn()
+//' connect(dbname = dbs[1]); push_conn()
+//' connect(dbname = dbs[2]); push_conn()
+//' connect(dbname = dbs[3]); push_conn()
 //' 
 //' show_conn_stack()
 //' rotate_stack()
@@ -552,9 +540,8 @@ int num_prepared_params(const char* name = "")
 //' show_conn_stack()
 //' disconnect()
 //' connect()
-//' 
-//' # cleanup
-//' lapply(paste("drop database", dbs), query)}
+//' lapply(paste("drop database", dbs), query)
+//' disconnect()}
 //' 
 //' @rdname stack
 //' @export
@@ -682,15 +669,8 @@ List show_conn_stack()
 //' @examples
 //' \dontrun{
 //' # try connecting to default database
-//' if ( connect() == "CONNECTION_BAD" )
-//' {
-//'  system("createdb -w -e")
-//'  if ( connect() == "CONNECTION_BAD" )
-//'    stop("Cannot connect to database")
-//' }
-//' 
-//' # rollback changes at the end
-//' query("begin")
+//' connect()
+//' sp = savepoint()
 //' 
 //' # for kicks work in a schema
 //' query("drop schema if exists pqrtesting cascade")
@@ -749,8 +729,8 @@ List show_conn_stack()
 //' print(fetch())
 //' finish_async()
 //' 
-//' # finish up
-//' query("rollback")
+//' # cleanup
+//' rollback(sp)
 //' disconnect()} 
 //' 
 //' @export
