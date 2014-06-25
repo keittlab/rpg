@@ -96,7 +96,7 @@ charvec_to_vec_char(CharacterVector x, const bool null_terminate = false)
 static void
 pqr_notice_processor(void *arg, const char *message)
 {
-    // Rcout << message;
+  Rf_warning(message);
 }
 
 static void setup_connection(CharacterVector keywords, CharacterVector values)
@@ -109,6 +109,7 @@ static void setup_connection(CharacterVector keywords, CharacterVector values)
     if ( PQprotocolVersion(conn) < 3 )
       stop("PostgreSQL messaging protocol version < 3 not supported");
     PQsetNoticeProcessor(conn, pqr_notice_processor, NULL);
+    PQexec(conn, "set client_min_messages to warning");
   }
 }
 

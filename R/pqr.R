@@ -674,21 +674,20 @@ reset_conn_defaults = function()
 #' if ( ! require(hflights, quietly = TRUE) )
 #'  stop("This example requires the \'hflights\' package")
 #'
-#' # helper util to setup a db for the example
-#' pqr:::setup_example_db()
-#'
 #' # big dataset
 #' data(hflights)
 #' dim(hflights)
 #' 
-#' # system.time({ write_table(hflights, overwrite = T) })
-#' # system.time({ invisible(read_table("hflights")) })
-#' system.time({ copy_to(hflights, overwrite = T) })
-#' system.time({ invisible(copy_from("hflights")) }) 
-#'         
-#' # cleanup and disconnect
-#' query("rollback")
-#' disconnect()}
+#' dbname = basename(tempfile())
+#' system(paste("createdb", dbname))
+#' opts = paste("-d", dbname)
+#' f = function(x) print(system.time(x));
+#' tryCatch(
+#' {
+#'  f({ copy_to(hflights, psql_opts = opts) }); 
+#'  f({ invisible(copy_from("hflights", psql_opts = opts)) })
+#' },
+#' finally = system(paste("dropdb", dbname)))}
 #' 
 #' @rdname copy
 #' @export
@@ -699,7 +698,7 @@ copy_from = function(what, psql_opts = "")
   psql_opts = proc_psql_opts(psql_opts)
   if ( grepl("select", what) ) what = paste("(", what, ")")
   sql = paste("copy", what, "to stdout csv null \'NA\' header")
-  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  con = pipe(paste(psql_path, psql_opts, "-w -1 -c", dquote_esc(sql)))
   read.csv(con, header = TRUE, as.is = TRUE)
 }
 
@@ -723,19 +722,18 @@ copy_to = function(x, tablename,
     tablename = deparse(substitute(x))
   tablename = dquote_esc(tablename)
   tablename = set_schema(tablename, schemaname)
-  if ( overwrite )
-    query(paste("drop table if exists", tablename))
+  sql = paste("copy", tablename, "from stdin csv null \'NA\' header")
   if ( ! append )
   {
     colnames = make.unique(names(x), "")
     types = sapply(x, pg_type)
     colspec = paste(dquote_esc(colnames), types, collapse = ", ")
-    status = query(paste("create table", tablename, "(", colspec, ")"))
-    if ( status == "PGRES_FATAL_ERROR" ) return(status)
+    sql = paste("create table", tablename, "(", colspec, ");", sql)
   }
+  if ( overwrite )
+    sql = paste("drop table if exists", tablename, ";", sql)
   psql_opts = proc_psql_opts(psql_opts)
-  sql = paste("copy", tablename, "from stdin csv null \'NA\' header")
-  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
+  con = pipe(paste(psql_path, psql_opts, "-w -1 -c", dquote_esc(sql)))
   write.csv(x, con, row.names = FALSE)
 }
 
