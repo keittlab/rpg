@@ -1,7 +1,7 @@
 #' @name rpg-package
 #' @aliases rpg
 #' @docType package
-#' @title Easy access to a PostgreSQL database
+#' @title Easy access to advanced PostgreSQL features
 #' @description
 #' Provides functions for connecting to, reading from and writing to a PostgreSQL
 #' database. Facilities for tracing the communication between R and PostgreSQL are
@@ -203,9 +203,9 @@ psql = function(psql_opts = "")
 #' 
 #' @examples
 #' \dontrun{
-#' # connect using defaults
-#' connect()
-#' sp = savepoint()
+#' system("createdb rpgtesting")
+#' connect("rpgtesting")
+#' begin()
 #'  
 #' # write data frame contents
 #' data(mtcars)
@@ -216,8 +216,9 @@ psql = function(psql_opts = "")
 #' describe_table("mtcars")
 #' 
 #' #cleanup
-#' rollback(sp)
-#' disconnect()}
+#' rollback()
+#' disconnect()
+#' system("dropdb rpgtesting")}
 #' 
 #' @rdname table-info
 #' @export
@@ -334,8 +335,9 @@ describe_table = function(tablename, schemaname = NULL)
 #' @examples
 #' \dontrun{
 #' # connect using defaults
-#' connect()
-#' sp = savepoint()
+#' system("createdb rpgtesting")
+#' connect("rpgtesting")
+#' begin()
 #'  
 #' # write data frame contents
 #' data(mtcars)
@@ -360,8 +362,9 @@ describe_table = function(tablename, schemaname = NULL)
 #' read_table("mtcars", pkey_to_row_names = T, limit = 3)
 #' 
 #' #cleanup
-#' rollback(sp)
-#' disconnect()}
+#' rollback()
+#' disconnect()
+#' system("dropdb rpgtesting")}
 #' 
 #' @rdname table-io
 #' @export
@@ -513,8 +516,9 @@ print.pg.trace.dump = function(x, ...)
 #'  stop("This example requires the \'foreach\' package")
 #'
 #' # connect using defaults
-#' connect()
-#' sp = savepoint()
+#' system("createdb rpgtesting")
+#' connect("rpgtesting")
+#' begin()
 #'  
 #' # write data frame contents
 #' data(mtcars)
@@ -533,8 +537,8 @@ print.pg.trace.dump = function(x, ...)
 #'  
 #'  # must connect to database on each node
 #'  clusterEvalQ(cl, library(rpg))
-#'  clusterEvalQ(cl, connect())
-#'  clusterEvalQ(cl, query("set search_path to rpgtesting"))
+#'  clusterEvalQ(cl, connect("rpgtesting"))
+#'  clusterEvalQ(cl, begin())
 #'  
 #'  # setup the dopar call
 #'  registerDoParallel(cl)
@@ -553,11 +557,13 @@ print.pg.trace.dump = function(x, ...)
 #'  row.names(x) = x$rows
 #'  x$rows = NULL
 #'  print(noquote(x))
+#'  stopCluster(cl)
 #' }
 #' 
 #' #cleanup
-#' rollback(sp)
-#' disconnect()}
+#' rollback()
+#' disconnect()
+#' system("dropdb rpgtesting")}
 #' 
 #' @seealso \code{foreach}, \code{\link{rollback}}
 #' 
@@ -723,7 +729,7 @@ copy_from = function(what, psql_opts = "")
 #' @param tablename name of table to create
 #' @param schemaname create table in this schema
 #' @param overwrite if true drop tablename before creating
-#' @param append if true, do not create any table
+#' @param append if true, do not create any table and ignore \code{overwrite}
 #' 
 #' @rdname copy
 #' @export
@@ -746,9 +752,9 @@ copy_to = function(x, tablename,
     types = sapply(x, pg_type)
     colspec = paste(dquote_esc(colnames), types, collapse = ", ")
     sql = paste("create table", tablename, "(", colspec, ");", sql)
+    if ( overwrite )
+      sql = paste("drop table if exists", tablename, ";", sql)
   }
-  if ( overwrite )
-    sql = paste("drop table if exists", tablename, ";", sql)
   psql_opts = proc_psql_opts(psql_opts)
   con = pipe(paste(psql_path, psql_opts, "-w -1 -c", dquote_esc(sql)))
   write.csv(x, con, row.names = FALSE)
@@ -774,7 +780,8 @@ copy_to = function(x, tablename,
 #' 
 #' @examples
 #' \dontrun{
-#' connect()
+#' system("createdb rpgtesting")
+#' connect("rpgtesting")
 #' begin()
 #' sp1 = savepoint()
 #' 
@@ -797,7 +804,8 @@ copy_to = function(x, tablename,
 #' 
 #' rollback(sp1)
 #' rollback()
-#' disconnect()}
+#' disconnect()
+#' system("dropdb rpgtesting")}
 #' 
 #' @rdname transactions
 #' @export

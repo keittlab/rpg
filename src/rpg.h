@@ -1,5 +1,5 @@
-#ifndef __EZPG_H__
-#define __EZPG_H__
+#ifndef __RPG_H__
+#define __RPG_H__
 
 #include <libpq-fe.h>
 
@@ -319,4 +319,4 @@ static CharacterVector result_status()
   return out;
 }
 
-#endif // __EZPG_H__
+#endif // __RPG_H__

@@ -143,11 +143,19 @@ SEXP get_conn_info_()
 //' 
 //' @examples
 //' \dontrun{
-//' query("begin")
+//' system("createdb rpgtesting")
+//' connect("rpgtesting")
+//' begin()
+//' query("drop schema if exists rpgtesting cascade")
+//' query("create schema rpgtesting")
+//' query("set search_path to rpgtesting")
+//' query("drop table if exists test")
 //' query("create table test (id integer, field text)")
 //' query("insert into test values ($1, $2)", c(1, "test"))
 //' fetch("select * from test")
-//' query("rollback")}
+//' rollback()
+//' disconnect()
+//' system("dropdb rpgtesting")}
 //' 
 //' @rdname query
 //' @export query
@@ -225,11 +233,14 @@ List fetch_dataframe()
 //' 
 //' @examples
 //' \dontrun{
-//' connect()
+//' system("createdb rpgtesting")
+//' connect("rpgtesting")
 //' trace_conn()
 //' list_tables()
 //' dump_conn_trace(n = 40)
-//' untrace_conn(remove = TRUE)}
+//' untrace_conn(remove = TRUE)
+//' disconnect()
+//' system("dropdb rpgtesting")}
 //' @rdname tracing
 //' @export
 // [[Rcpp::export]]
@@ -443,13 +454,9 @@ bool check_transaction()
 //' @examples
 //' \dontrun{
 //' # try connecting to default database
-//' connect()
-//' sp = savepoint()
-//' 
-//' # for kicks work in a schema
-//' query("drop schema if exists rpgtesting cascade")
-//' query("create schema rpgtesting")
-//' query("set search_path to rpgtesting")
+//' system("createdb rpgtesting")
+//' connect("rpgtesting")
+//' begin()
 //' 
 //' # write data frame contents
 //' data(mtcars)
@@ -467,8 +474,9 @@ bool check_transaction()
 //' read_table(mtcars, limit = 5)
 //' 
 //' # cleanup
-//' rollback(sp)
-//' disconnect()}
+//' rollback()
+//' disconnect()
+//' system("dropdb rpgtesting")}
 //' 
 //' @rdname prepare
 //' @export
@@ -511,12 +519,9 @@ int num_prepared_params(const char* name = "")
 //' 
 //' @examples
 //' \dontrun{
-//' # try connecting to default database
-//' connect()
-//' 
 //' # make some databases
-//' dbs = basename(c(tempfile(), tempfile(), tempfile()))
-//' lapply(paste("create database", dbs), execute)
+//' dbs = paste0("rpgdb", 1:3)
+//' lapply(paste("createdb", dbs), system)
 //'
 //' # connect
 //' connect(dbname = dbs[1]); push_conn()
@@ -540,8 +545,7 @@ int num_prepared_params(const char* name = "")
 //' show_conn_stack()
 //' disconnect()
 //' connect()
-//' lapply(paste("drop database", dbs), query)
-//' disconnect()}
+//' lapply(paste("dropdb", dbs), system)}
 //' 
 //' @rdname stack
 //' @export
@@ -668,14 +672,10 @@ List show_conn_stack()
 //'  
 //' @examples
 //' \dontrun{
-//' # try connecting to default database
-//' connect()
-//' sp = savepoint()
-//' 
-//' # for kicks work in a schema
-//' query("drop schema if exists rpgtesting cascade")
-//' query("create schema rpgtesting")
-//' query("set search_path to rpgtesting")
+//' # create a database
+//' system("createdb rpgtesting")
+//' connect("rpgtesting")
+//' begin()
 //' 
 //' # write data frame contents
 //' data(mtcars)
@@ -719,7 +719,6 @@ List show_conn_stack()
 //' finish_async()
 //' 
 //' # you can run multiple queries with async_query
-//' query("rollback; begin")
 //' sql1 = "select mpg from mtcars limit 3"
 //' sql2 = "select cyl from mtcars limit 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
@@ -730,8 +729,9 @@ List show_conn_stack()
 //' finish_async()
 //' 
 //' # cleanup
-//' rollback(sp)
-//' disconnect()} 
+//' rollback()
+//' disconnect()
+//' system("dropdb rpgtesting")} 
 //' 
 //' @export
 //' @rdname async
