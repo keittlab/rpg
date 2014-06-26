@@ -149,6 +149,7 @@ proc_psql_opts = function(psql_opts = "")
     if ( !is.null(port) ) psql_opts = paste(psql_opts, "-p", port)
     if ( !is.null(user) ) psql_opts = paste(psql_opts, "-U", user)
   }
+  psql_opts = paste(psql_opts, "-n -q -w -1")
   return(psql_opts)
 }
 

@@ -316,8 +316,6 @@ describe_table = function(tablename, schemaname = NULL)
 #' If \code{types} is not supplied, they will be computed from the classes and
 #' types of the columns of input.
 #' 
-#' \code{write_table} does not currently handle \code{NA} values correctly.
-#' 
 #' @return \code{write_table} the final query status
 #' 
 #' @note The entire process is wrapped within a transcation. On failure
@@ -701,16 +699,21 @@ reset_conn_defaults = function()
 #' data(hflights)
 #' dim(hflights)
 #' 
-#' dbname = basename(tempfile())
-#' system(paste("createdb", dbname))
-#' opts = paste("-d", dbname)
-#' f = function(x) print(system.time(x));
-#' tryCatch(
-#' {
-#'  f({ copy_to(hflights, psql_opts = opts) }); 
-#'  f({ invisible(copy_from("hflights", psql_opts = opts)) })
-#' },
-#' finally = system(paste("dropdb", dbname)))}
+#' system(paste("createdb rpgtesting"))
+#' connect("rpgtesting")
+#' begin()
+#' 
+#' system.time(write_table(hflights))
+#' system.time(invisible(read_table("hflights")))
+#' 
+#' rollback()
+#' disconnect()
+#' 
+#' opts = paste("-d rpgtesting")
+#' system.time(copy_to(hflights, psql_opts = opts))
+#' system.time(invisible(copy_from("hflights", psql_opts = opts)))
+#' 
+#' system(paste("dropdb rpgtesting"))}
 #' 
 #' @rdname copy
 #' @export
@@ -721,7 +724,7 @@ copy_from = function(what, psql_opts = "")
   psql_opts = proc_psql_opts(psql_opts)
   if ( grepl("select", what) ) what = paste("(", what, ")")
   sql = paste("copy", what, "to stdout csv null \'NA\' header")
-  con = pipe(paste(psql_path, psql_opts, "-w -1 -c", dquote_esc(sql)))
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
   read.csv(con, header = TRUE, as.is = TRUE)
 }
 
@@ -735,7 +738,6 @@ copy_from = function(what, psql_opts = "")
 #' @export
 copy_to = function(x, tablename,
                    schemaname = NULL,
-                   overwrite = FALSE,
                    append = FALSE,
                    psql_opts = "")
 {
@@ -752,11 +754,11 @@ copy_to = function(x, tablename,
     types = sapply(x, pg_type)
     colspec = paste(dquote_esc(colnames), types, collapse = ", ")
     sql = paste("create table", tablename, "(", colspec, ");", sql)
-    if ( overwrite )
-      sql = paste("drop table if exists", tablename, ";", sql)
+    sql = paste("drop table if exists", tablename, ";", sql)
   }
+  sql = paste("set client_min_messages to warning;", sql)
   psql_opts = proc_psql_opts(psql_opts)
-  con = pipe(paste(psql_path, psql_opts, "-w -1 -c", dquote_esc(sql)))
+  con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
   write.csv(x, con, row.names = FALSE)
 }
 

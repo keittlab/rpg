@@ -88,7 +88,8 @@ static std::vector<const char*>
 charvec_to_vec_char(CharacterVector x, const bool null_terminate = false)
 {
   std::vector<const char*> out(x.size());
-  for ( int i = 0; i != x.size(); ++i ) out[i] = CHAR(x[i]);
+  for ( int i = 0; i != x.size(); ++i )
+    out[i] = x[i] == NA_STRING ? '\0' : CHAR(x[i]);
   if ( null_terminate ) out.push_back('\0');
   return out;
 }
