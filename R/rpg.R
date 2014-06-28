@@ -378,8 +378,7 @@ write_table = function(x,
     tablename = deparse(substitute(x))
   x = as.data.frame(x, stringsAsFactors = FALSE)
   if ( prod(dim(x)) < 1 ) stop("Empty input")
-  tablename = dquote_esc(tablename)
-  tablename = set_schema(tablename, schemaname)
+  tableid = format_tablename(tablename, schemaname)
   x = handle_row_names(x, row_names)
   colnames = make.unique(names(x), "")
   if ( is.null(types) )
@@ -410,15 +409,15 @@ write_table = function(x,
   colnames = as.csv(colnames)
   sp = savepoint()
   on.exit(rollback(sp))
-  if ( overwrite ) execute("drop table if exists", tablename)
-  sql = paste("create table", tablename, "(", types, ")")
+  if ( overwrite ) execute("drop table if exists", tableid)
+  sql = paste("create table", tableid, "(", types, ")")
   status = query(sql)
   if ( status == "PGRES_COMMAND_OK" )
   {
     x = format_dates(x)
     sqlpars = paste0("$", 1:ncol(x))
     sqlpars = as.csv(sqlpars)
-    sql = paste("insert into", tablename, "(", colnames, ")")
+    sql = paste("insert into", tableid, "(", colnames, ")")
     sql = paste(sql, "values (", sqlpars, ")")
     ssname = unique_name()
     pstatus = prepare(sql, ssname)
@@ -444,15 +443,15 @@ read_table = function(tablename,
                       schemaname = NULL,
                       pkey_to_row_names = FALSE)
 {
-  tablename = deparse(substitute(tablename))
-  tablename = dquote_esc(tablename)
-  tablename = set_schema(tablename, schemaname)
-  sql = paste("select", what, "from", tablename)
+  tablename = ifelse(is.character(tablename), tablename,
+                     deparse(substitute(tablename)))
+  tableid = format_tablename(tablename, schemaname)
+  sql = paste("select", what, "from", tableid)
   if ( !is.null(limit) ) sql = paste(sql, "limit", limit)
   res = fetch(sql)
   if ( inherits(res, "pq.status" ) ) return(res) 
   if ( pkey_to_row_names && is.null(row_names) )
-    row_names = primary_key_name(tablename)
+    row_names = primary_key_name(tableid)
   if ( !is.null(row_names) )
   {
     row.names(res) = res[[row_names]]
@@ -731,8 +730,7 @@ copy_from = function(what, psql_opts = "")
 #' @param x a data frame
 #' @param tablename name of table to create
 #' @param schemaname create table in this schema
-#' @param overwrite if true drop tablename before creating
-#' @param append if true, do not create any table and ignore \code{overwrite}
+#' @param append if false, drop and recreate table
 #' 
 #' @rdname copy
 #' @export
@@ -745,16 +743,15 @@ copy_to = function(x, tablename,
   if ( nchar(psql_path) == 0 ) stop("psql not found")
   if ( missing(tablename) )
     tablename = deparse(substitute(x))
-  tablename = dquote_esc(tablename)
-  tablename = set_schema(tablename, schemaname)
-  sql = paste("copy", tablename, "from stdin csv null \'NA\' header")
+  tableid = format_tablename(tablename, schemaname)
+  sql = paste("copy", tableid, "from stdin csv null \'NA\' header")
   if ( ! append )
   {
     colnames = make.unique(names(x), "")
     types = sapply(x, pg_type)
     colspec = paste(dquote_esc(colnames), types, collapse = ", ")
-    sql = paste("create table", tablename, "(", colspec, ");", sql)
-    sql = paste("drop table if exists", tablename, ";", sql)
+    sql = paste("create table", tableid, "(", colspec, ");", sql)
+    sql = paste("drop table if exists", tableid, ";", sql)
   }
   sql = paste("set client_min_messages to warning;", sql)
   psql_opts = proc_psql_opts(psql_opts)
@@ -852,4 +849,79 @@ savepoint = function()
     commit = function() execute("commit")
   }
   list(rollback = rollback, commit = commit)
+}
+
+#' @export
+stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
+{
+  objlist = list(...)
+  objnames = names(objlist)
+  objsyms = as.character(substitute(list(...)))[-1L]
+  if ( is.null(objnames) )
+    objnames = objsyms
+  else
+    objnames[objnames == ""] = objsyms[objnames == ""]
+  objnames = make.names(objnames)
+  tableid = format_tablename(tablename, schemaname)
+  sp = savepoint()
+  on.exit(rollback(sp))
+  check_stow(tablename, schemaname)
+  for ( i in seq(along = objlist) )
+  {
+    sql = paste("insert into", tableid,
+                "(objname, object) values (\'", objnames[i], "\', $1)")
+    status = exec_param_serialize(sql, objlist[[i]])
+    if ( status == "PGRES_FATAL_ERROR" ) return(status)
+  }
+  on.exit(commit(sp))
+  invisible()
+}
+
+#' @export
+list_stowed = function(tablename = "rpgstow", schemaname = "rpgstow")
+{
+  tableid = format_tablename(tablename, schemaname)
+  fetch(paste("select objname from", tableid))
+}
+
+#' @export
+retrieve = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
+{
+  tableid = format_tablename(tablename, schemaname)
+  sql = paste("select * from", tableid, "where objname ~ $1")
+  out = list()
+  for ( n in objnames )
+  {
+    res = fetch_stowed(sql, n)
+    out[names(res)] = res
+  }
+  return(out)
+}
+
+#' @export
+delete_stowed = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
+{
+  tableid = format_tablename(tablename, schemaname)
+  status = prepare(paste("delete from", tableid, "where objname ~ $1"))
+  if ( status == "PGRES_FATAL_ERROR" ) return(status)
+  execute_prepared(matrix(objnames))
+}
+
+#' @export
+stow_image = function(imagename = "rpgimage", schemaname = "rpgstow")
+{
+  delete_stowed('.*', imagename, schemaname)
+  args = as.list(ls(envir = .GlobalEnv, all.names = TRUE))
+  args$tablename = imagename
+  args$schemaname = schemaname
+  do.call("stow", args, envir = .GlobalEnv)
+}
+
+#' @export
+retrieve_image = function(imagename = "rpgimage", schemaname = "rpgstow")
+{
+  objnames = list_stowed(imagename, schemaname)
+  x = retrieve('.*', imagename, schemaname)
+  lapply(names(x), function(n) assign(n, x[[n]], envir = .GlobalEnv))
+  invisible(x)
 }

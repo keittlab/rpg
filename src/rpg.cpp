@@ -779,3 +779,36 @@ void finish_async()
   clear_res();
 }
 
+// [[Rcpp::export]]
+CharacterVector exec_param_serialize(const char* sql, SEXP obj)
+{
+  SEXP bin = serializeToRaw(obj);
+  int binfmt = 1, len = Rf_length(bin);
+  const char *binvals = (const char*) RAW(bin);
+  set_res(PQexecParams(conn, sql, 1, NULL, &binvals, &len, &binfmt, 0));
+  return result_status();
+}
+
+// [[Rcpp::export]]
+List fetch_stowed(const char* sql, const char* par)
+{
+  set_res(PQexecParams(conn, sql, 1, NULL, &par, NULL, NULL, 1));
+  int nrow = PQntuples(res),
+      ncol = PQnfields(res);
+  if ( nrow == 0 ) return List();
+  if ( ncol != 2 ) stop("Invalid query");
+  List out(nrow);
+  for ( int i = 0; i != nrow; ++i )
+  {
+    const char *byteadat = PQgetvalue(res, i, 1);
+    int bdlen = PQgetlength(res, i, 1);
+    RawVector bd(byteadat, byteadat + bdlen);
+    out[i] = unserializeFromRaw(wrap(bd));
+  }
+  CharacterVector names(nrow);
+  for ( int i = 0; i != nrow; ++i )
+    names[i] = fetch_binary_text(i, 0);
+  out.attr("names") = names;
+  return out;
+}
+

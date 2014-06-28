@@ -6,6 +6,8 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+#include <RApiSerializeAPI.h>
+
 #include <cstring>
 
 static PGconn* conn = NULL;
@@ -38,7 +40,7 @@ static void clear_res()
 
 static void set_res(PGresult* x)
 {
-  PQclear(res);
+  clear_res();
   res = x;
 }
 
@@ -228,6 +230,15 @@ static SEXP fetch_string(int row = 0, int col = 0)
   if ( PQgetisnull(res, row, col) ) return NA_STRING;
   std::string val = PQgetvalue(res, row, col);
   return Rf_mkChar(val.c_str());
+}
+
+static SEXP fetch_binary_text(int row = 0, int col = 0)
+{
+  if ( PQgetisnull(res, row, col) ) return NA_STRING;
+  char* val = PQgetvalue(res, row, col) + 1;
+  int i = PQgetlength(res, row, col);
+  val[i - 2] = '\0';
+  return Rf_mkChar(val);
 }
 
 static int fetch_int(int row = 0, int col = 0)

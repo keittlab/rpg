@@ -81,11 +81,12 @@ format_dates = function(x)
   x
 }
 
-set_schema = function(a, b)
+format_tablename = function(tablename, schemaname = NULL)
 {
-  if ( !is.null(b) )
-    a = paste(dquote_esc(b), a, sep = ".")
-  return(a)
+  if ( is.null(schemaname) )
+    dquote_esc(tablename)
+  else
+    paste(dquote_esc(schemaname), dquote_esc(tablename), sep = ".")
 }
 
 handle_row_names = function(a, b)
@@ -170,3 +171,27 @@ run_examples = function()
   eval(example(savepoint, run = T), globalenv())
   invisible()
 }
+
+check_schema = function(schemaname)
+{
+  sql = paste("select count(*) = 0 from",
+              "information_schema.schemata",
+              "where schema_name = $1")
+  res = fetch(sql, schemaname)
+  if ( inherits(res, "pg.status") ) stop(status)
+  if (  res[[1]] ) execute("create schema", dquote_esc(schemaname))
+}
+
+check_stow = function(tablename, schemaname)
+{
+  check_schema(schemaname)
+  sql = paste("select count(*) = 0 from",
+              "information_schema.tables",
+              "where table_name = $1")
+  res = fetch(sql, tablename)
+  if ( inherits(res, "pg.status") ) stop(status)
+  if ( res[[1]] )
+      execute("create table", format_tablename(tablename, schemaname),
+              "(objname text primary key, object bytea)")
+}
+
