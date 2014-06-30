@@ -146,13 +146,13 @@ SEXP get_conn_info_()
 //' system("createdb rpgtesting")
 //' connect("rpgtesting")
 //' begin()
-//' query("drop schema if exists rpgtesting cascade")
-//' query("create schema rpgtesting")
-//' query("set search_path to rpgtesting")
-//' query("drop table if exists test")
-//' query("create table test (id integer, field text)")
-//' query("insert into test values ($1, $2)", c(1, "test"))
-//' fetch("select * from test")
+//' query("DROP SCHEMA IF EXISTS rpgtesting CASCADE")
+//' query("CREATE SCHEMA rpgtesting")
+//' query("SET search_path TO rpgtesting")
+//' query("DROP TABLE IF EXISTS test")
+//' query("CREATE TABLE test (id integer, field text)")
+//' query("INSERT INTO test VALUES ($1, $2)", c(1, "test"))
+//' fetch("SELECT * FROM test")
 //' rollback()
 //' disconnect()
 //' system("dropdb rpgtesting")}
@@ -389,11 +389,11 @@ bool check_transaction()
   {
     case PQTRANS_INERROR:
       Rcout << "Error in current transaction: rolling back...";
-      query("rollback");
+      query("ROLLBACK");
       Rcout << " done." << std::endl;
     case PQTRANS_IDLE:
       Rcout << "Initiating new transaction block...";
-      query("begin");
+      query("BEGIN");
       Rcout << " done." << std::endl;
       return false;
     case PQTRANS_UNKNOWN:
@@ -468,7 +468,7 @@ bool check_transaction()
 //' 
 //' # use prepare-execute to write rows
 //' pars = paste0("$", 1:11, collapse = ", ")
-//' sql = paste0("insert into mtcars values (", pars, ")", collapse = " ")
+//' sql = paste0("INSERT INTO mtcars VALUES (", pars, ")", collapse = " ")
 //' prepare(sql, "test_statement")
 //' execute_prepared(mtcars, "test_statement")
 //' read_table(mtcars, limit = 5)
@@ -683,7 +683,7 @@ List show_conn_stack()
 //' 
 //' # async processing on smallish result
 //' # this wont be interesting if your machine is very fast
-//' async_query("select a.* from mtcars a, mtcars b")
+//' async_query("SELECT a.* FROM mtcars a, mtcars b")
 //' repeat
 //' {
 //'   status = async_status()
@@ -697,7 +697,7 @@ List show_conn_stack()
 //' Sys.sleep(1)
 //' 
 //' # async processing on larger result
-//' async_query("select a.* from mtcars a, mtcars b, mtcars c")
+//' async_query("SELECT a.* FROM mtcars a, mtcars b, mtcars c")
 //' count = 0
 //' repeat
 //' {
@@ -719,8 +719,10 @@ List show_conn_stack()
 //' finish_async()
 //' 
 //' # you can run multiple queries with async_query
-//' sql1 = "select mpg from mtcars limit 3"
-//' sql2 = "select cyl from mtcars limit 4"
+//' rollback(); begin()
+//' write_table(mtcars)
+//' sql1 = "SELECT mpg FROM mtcars LIMIT 3"
+//' sql2 = "SELECT cyl FROM mtcars LIMIT 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
 //' while ( async_status() == "BUSY" ) NULL
 //' print(fetch())
@@ -752,14 +754,15 @@ CharacterVector async_status()
 {
   if ( PQconsumeInput(conn) == 0 )
     stop(PQerrorMessage(conn));
-  if ( PQisBusy(conn) == 1 ) return "BUSY";
+  if ( PQisBusy(conn) == 1 ) return make_status("BUSY");
   PGresult *r = PQgetResult(conn);
   if ( r )
   {
-    set_res(r);
+    PQclear(res);
+    res = r;
     return result_status();
   }
-  else return "DONE";
+  else return make_status("DONE");
 }
 
 //' @param stop_on_error call \code{\link{stop}} if cancel request cannot be issued

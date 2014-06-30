@@ -69,7 +69,7 @@ NULL
 #' 
 #' @examples
 #' \dontrun{
-#' fetch("show search_path") # default connection
+#' fetch("SHOW search_path") # default connection
 #' connect("test")
 #' connect(dbname = "test")
 #' connect(dbname = "test", host = "localhost")
@@ -409,16 +409,16 @@ write_table = function(x,
   colnames = as.csv(colnames)
   sp = savepoint()
   on.exit(rollback(sp))
-  if ( overwrite ) execute("drop table if exists", tableid)
-  sql = paste("create table", tableid, "(", types, ")")
+  if ( overwrite ) execute("DROP TABLE IF EXISTS", tableid)
+  sql = paste("CREATE TABLE", tableid, "(", types, ")")
   status = query(sql)
   if ( status == "PGRES_COMMAND_OK" )
   {
     x = format_dates(x)
     sqlpars = paste0("$", 1:ncol(x))
     sqlpars = as.csv(sqlpars)
-    sql = paste("insert into", tableid, "(", colnames, ")")
-    sql = paste(sql, "values (", sqlpars, ")")
+    sql = paste("INSERT INTO", tableid, "(", colnames, ")")
+    sql = paste(sql, "VALUES (", sqlpars, ")")
     ssname = unique_name()
     pstatus = prepare(sql, ssname)
     if ( pstatus == "PGRES_FATAL_ERROR" ) return(pstatus)
@@ -522,7 +522,7 @@ print.pg.trace.dump = function(x, ...)
 #' write_table(mtcars, row_names = "id", pkey = "id", overwrite = T)
 #' 
 #' # expand rows to columns 8 rows at a time
-#' x = foreach(i = cursor("select * from mtcars", 8),
+#' x = foreach(i = cursor("SELECT * FROM mtcars", 8),
 #'             .combine = rbind) %do% { i$mpg }
 #' print(x, digits = 2)
 #'         
@@ -541,7 +541,7 @@ print.pg.trace.dump = function(x, ...)
 #'  registerDoParallel(cl)
 #'  
 #'  # take column averages 4 rows at a time
-#'  curs1 = cursor("select * from mtcars", by = 4)
+#'  curs1 = cursor("SELECT * FROM mtcars", by = 4)
 #'  x = foreach(i = curs1, .combine = rbind, .inorder = FALSE) %dopar%
 #'  {
 #'    rr = paste0(range(abbreviate(i$id)), collapse = "-")
@@ -570,10 +570,10 @@ cursor = function(sql, by = 1)
 {
   check_transaction();
   cname = unique_name();
-  execute("declare", cname, "cursor for", sql)
+  execute("DECLARE", cname, "CURSOR FOR", sql)
   f = function()
   {
-    res = fetch(paste("fetch", by, "from", cname))
+    res = fetch(paste("FETCH", by, "FROM", cname))
     if ( inherits(res, "pq.status") ) stop(res)
     if ( length(res) < 1 ) stop("StopIteration")
     return(res)
@@ -721,8 +721,8 @@ copy_from = function(what, psql_opts = "")
   psql_path = Sys.which("psql")
   if ( nchar(psql_path) == 0 ) stop("psql not found")
   psql_opts = proc_psql_opts(psql_opts)
-  if ( grepl("select", what) ) what = paste("(", what, ")")
-  sql = paste("copy", what, "to stdout csv null \'NA\' header")
+  if ( grepl("select", tolower(what)) ) what = paste("(", what, ")")
+  sql = paste("COPY", what, "TO stdout CSV NULL \'NA\' HEADER")
   con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
   read.csv(con, header = TRUE, as.is = TRUE)
 }
@@ -730,7 +730,7 @@ copy_from = function(what, psql_opts = "")
 #' @param x a data frame
 #' @param tablename name of table to create
 #' @param schemaname create table in this schema
-#' @param append if false, drop and recreate table
+#' @param append if false, drop and receate table
 #' 
 #' @rdname copy
 #' @export
@@ -744,16 +744,16 @@ copy_to = function(x, tablename,
   if ( missing(tablename) )
     tablename = deparse(substitute(x))
   tableid = format_tablename(tablename, schemaname)
-  sql = paste("copy", tableid, "from stdin csv null \'NA\' header")
+  sql = paste("COPY", tableid, "FROM stdin CSV NULL \'NA\' HEADER")
   if ( ! append )
   {
     colnames = make.unique(names(x), "")
     types = sapply(x, pg_type)
     colspec = paste(dquote_esc(colnames), types, collapse = ", ")
-    sql = paste("create table", tableid, "(", colspec, ");", sql)
-    sql = paste("drop table if exists", tableid, ";", sql)
+    sql = paste("CREATE TABLE", tableid, "(", colspec, ");", sql)
+    sql = paste("DROP TABLE IF EXISTS", tableid, ";", sql)
   }
-  sql = paste("set client_min_messages to warning;", sql)
+  sql = paste("SET client_min_messages TO warning;", sql)
   psql_opts = proc_psql_opts(psql_opts)
   con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
   write.csv(x, con, row.names = FALSE)
@@ -808,7 +808,7 @@ copy_to = function(x, tablename,
 #' 
 #' @rdname transactions
 #' @export
-begin = function() execute("begin")
+begin = function() execute("BEGIN")
 
 #' @param savepoint an object produced by \code{savepoint}
 #' @rdname transactions
@@ -816,7 +816,7 @@ begin = function() execute("begin")
 commit = function(savepoint = NULL)
 {
   if ( is.null(savepoint) )
-    execute("commit")
+    execute("COMMIT")
   else
     savepoint$commit()
 }
@@ -826,7 +826,7 @@ commit = function(savepoint = NULL)
 rollback = function(savepoint = NULL)
 {
   if ( is.null(savepoint) )
-    execute("rollback")
+    execute("ROLLBACK")
   else
     savepoint$rollback()
 }
@@ -874,6 +874,40 @@ savepoint = function()
 #' 
 #' @author Timothy H. Keitt
 #' 
+#' @examples
+#' \dontrun{
+#' system("createdb rpgtesting")
+#' connect("rpgtesting")
+#' begin()
+#'
+#' stow("test")
+#' list_stowed()
+#' stow("test")
+#' list_stowed()
+#' stow(x = "test")
+#' list_stowed()
+#' x = 1
+#' stow(x)
+#' list_stowed()
+#' stow(y = x)
+#' list_stowed()
+#' rm(x)
+#' retrieve(".*")
+#' print(test)
+#' print(x)
+#' print(y)
+#' delete_stowed(".*")
+#' data(mtcars)
+#' stow(mtcars)
+#' list_stowed()
+#' rm(mtcars)
+#' retrieve("mtcars")
+#' head(mtcars)
+#' 
+#' rollback()
+#' disconnect()
+#' system("dropdb rpgtesting")}
+#' 
 #' @rdname stow
 #' @export
 stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
@@ -910,9 +944,14 @@ list_stowed = function(tablename = "rpgstow", schemaname = "rpgstow")
 }
 
 #' @param objnames a character vector with object names or regular expressions
-#' @details The functions \code{retrieve} and \code{delete_stowed} use regular
+#' @details \code{retrieve} assigns the stowed values to the
+#' stowed names in the global environment. It will overwrite any variable that
+#' has the same name as a stowed object.
+#' 
+#' The functions \code{retrieve} and \code{delete_stowed} use regular
 #' expression matching as implemented by the
 #' \href{http://www.postgresql.org/docs/9.1/static/functions-matching.html}{PostgreSQL \code{~} operator}.
+#' 
 #' @rdname stow
 #' @export
 retrieve = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")

@@ -225,14 +225,14 @@ static void exec_prepared_rows(CharacterMatrix pars, const char* name = "")
   }
 }
 
-static SEXP fetch_string(int row = 0, int col = 0)
+static SEXP fetch_string(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_STRING;
   std::string val = PQgetvalue(res, row, col);
   return Rf_mkChar(val.c_str());
 }
 
-static SEXP fetch_binary_text(int row = 0, int col = 0)
+static SEXP fetch_binary_text(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_STRING;
   char* val = PQgetvalue(res, row, col) + 1;
@@ -241,28 +241,28 @@ static SEXP fetch_binary_text(int row = 0, int col = 0)
   return Rf_mkChar(val);
 }
 
-static int fetch_int(int row = 0, int col = 0)
+static int fetch_int(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_INTEGER;
   std::string val = PQgetvalue(res, row, col);
   return atoi(val.c_str());
 }
 
-static double fetch_double(int row = 0, int col = 0)
+static double fetch_double(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_REAL;
   std::string val = PQgetvalue(res, row, col);
   return atof(val.c_str());
 }
 
-static int fetch_bool(int row = 0, int col = 0)
+static int fetch_bool(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_LOGICAL;
   std::string val = PQgetvalue(res, row, col);
   return val.compare("t") ? 0 : 1; // weird
 }
 
-static Date fetch_date(int row = 0, int col = 0)
+static Date fetch_date(const int row = 0, const int col = 0)
 {
   if ( PQgetisnull(res, row, col) ) return NA_INTEGER;
   std::string val = PQgetvalue(res, row, col);
@@ -322,13 +322,21 @@ static const char* tempfile()
   return as<const char*>(tf());
 }
 
-static CharacterVector result_status()
+static CharacterVector make_status(const char* status,
+                                   const bool with_err = false,
+                                   const bool with_cmd = false)
 {
-  CharacterVector out(PQresStatus(PQresultStatus(res)));
-  out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
-  out.attr("command.status") = wrap_string(PQcmdStatus(res));
+  CharacterVector out(status);
+  if ( with_err ) out.attr("error.message") = wrap_string(PQresultErrorMessage(res));
+  if ( with_cmd ) out.attr("command.status") = wrap_string(PQcmdStatus(res));
   out.attr("class") = "pq.status";
   return out;
+}
+
+static CharacterVector result_status(const bool with_err = true,
+                                     const bool with_cmd = true)
+{
+  return make_status(PQresStatus(PQresultStatus(res)), with_err, with_cmd);
 }
 
 #endif // __RPG_H__
