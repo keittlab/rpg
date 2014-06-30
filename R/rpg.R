@@ -839,28 +839,52 @@ savepoint = function()
   if ( check_transaction() )
   {
     spname = unique_name()
-    execute("savepoint", spname)
-    rollback = function() execute("rollback to", spname)
-    commit = function() execute("release", spname)
+    execute("SAVEPOINT", spname)
+    rollback = function() execute("ROLLBACK TO", spname)
+    commit = function() execute("RELEASE", spname)
   }
   else
   {
-    rollback = function() execute("rollback")
-    commit = function() execute("commit")
+    rollback = function() execute("ROLLBACK")
+    commit = function() execute("COMMIT")
   }
   list(rollback = rollback, commit = commit)
 }
 
+#' Object storage
+#' 
+#' Serialize and write R objects
+#' 
+#' @param ... a list of objects or object names
+#' @param tablename the table for storing objects
+#' @param schemaname the schema to use
+#' 
+#' @details These functions allow one to write out any R object to a PostgreSQL
+#' database and later retrieve them into any R session. The pair \code{stow} and
+#' \code{retrieve} are modeled roughly as \code{\link{save}} and \code{\link{load}}.
+#' 
+#' The contents of \code{...} are handled specially. If a named argument is passed,
+#' then the object will be stowed and retrieved with that name. A raw string will
+#' not be stowed if it matches the name of any R object; the matching R object will
+#' be stowed instead. A vector of strings will however be stowed as is. Object names
+#' will be coerced to valid identifiers using \code{\link{make.names}}. Names must
+#' be unique and not collide with any existing object name in the same table.
+#' 
+#' @seealso \code{\link{RApiSerialize}}
+#' 
+#' @author Timothy H. Keitt
+#' 
+#' @rdname stow
 #' @export
 stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
 {
   objlist = list(...)
   objnames = names(objlist)
   objsyms = as.character(substitute(list(...)))[-1L]
-  if ( is.null(objnames) )
-    objnames = objsyms
-  else
-    objnames[objnames == ""] = objsyms[objnames == ""]
+  if ( is.null(objnames) ) objnames = rep("", length(objlist))
+  i = which(objnames == "")
+  objlist[i] = mget(objsyms[i], ifnotfound = objlist[i], envir = parent.frame())
+  objnames[i] = objsyms[i]
   objnames = make.names(objnames)
   tableid = format_tablename(tablename, schemaname)
   sp = savepoint()
@@ -868,8 +892,8 @@ stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
   check_stow(tablename, schemaname)
   for ( i in seq(along = objlist) )
   {
-    sql = paste("insert into", tableid,
-                "(objname, object) values (\'", objnames[i], "\', $1)")
+    sql = paste("INSERT INTO", tableid,
+                "(objname, object) VALUES (\'", objnames[i], "\', $1)")
     status = exec_param_serialize(sql, objlist[[i]])
     if ( status == "PGRES_FATAL_ERROR" ) return(status)
   }
@@ -877,51 +901,65 @@ stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
   invisible()
 }
 
+#' @rdname stow
 #' @export
 list_stowed = function(tablename = "rpgstow", schemaname = "rpgstow")
 {
   tableid = format_tablename(tablename, schemaname)
-  fetch(paste("select objname from", tableid))
+  fetch(paste("SELECT objname FROM", tableid))
 }
 
+#' @param objnames a character vector with object names or regular expressions
+#' @details The functions \code{retrieve} and \code{delete_stowed} use regular
+#' expression matching as implemented by the
+#' \href{http://www.postgresql.org/docs/9.1/static/functions-matching.html}{PostgreSQL \code{~} operator}.
+#' @rdname stow
 #' @export
 retrieve = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
 {
   tableid = format_tablename(tablename, schemaname)
-  sql = paste("select * from", tableid, "where objname ~ $1")
-  out = list()
+  sql = paste("SELECT * FROM", tableid, "WHERE objname ~ $1")
   for ( n in objnames )
   {
     res = fetch_stowed(sql, n)
-    out[names(res)] = res
+    lapply(names(res), function(n) assign(n, res[[n]], envir = .GlobalEnv))
   }
-  return(out)
+  invisible()
 }
 
+#' @rdname stow
 #' @export
 delete_stowed = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
 {
+  sp = savepoint(); on.exit(rollback(sp))
   tableid = format_tablename(tablename, schemaname)
-  status = prepare(paste("delete from", tableid, "where objname ~ $1"))
+  status = prepare(paste("DELETE FROM", tableid, "WHERE objname ~ $1"))
   if ( status == "PGRES_FATAL_ERROR" ) return(status)
-  execute_prepared(matrix(objnames))
+  status = execute_prepared(matrix(objnames, ncol = 1))
+  if ( status == "PGRES_FATAL_ERROR" ) return(status)
+  on.exit(commit(sp))
 }
 
+#' @param imagename a table name for stowing the session image
+#' @details \code{stow_image} and \code{retrieve_image} will stow all objects in
+#' the current session and retrieve them later. Note that \code{stow_image} will
+#' overwrite all existing objects stowed within \code{imagename}.
+#' @rdname stow
 #' @export
 stow_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 {
+  sp = savepoint(); on.exit(rollback(sp))
   delete_stowed('.*', imagename, schemaname)
   args = as.list(ls(envir = .GlobalEnv, all.names = TRUE))
   args$tablename = imagename
   args$schemaname = schemaname
   do.call("stow", args, envir = .GlobalEnv)
+  on.exit(commit(sp))
 }
 
+#' @rdname stow
 #' @export
 retrieve_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 {
-  objnames = list_stowed(imagename, schemaname)
-  x = retrieve('.*', imagename, schemaname)
-  lapply(names(x), function(n) assign(n, x[[n]], envir = .GlobalEnv))
-  invisible(x)
+  retrieve('.*', imagename, schemaname)
 }
