@@ -26,6 +26,7 @@
 #' @references \url{http://github.com/thk686/rpg}, \url{http://www.postgresql.org/}
 #' @keywords package
 #' @import Rcpp
+#' @import RApiSerialize
 #' @useDynLib rpg
 NULL
 
