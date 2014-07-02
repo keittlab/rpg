@@ -663,7 +663,7 @@ reset_conn_defaults = function()
 #' Read from and write to a database using COPY
 #' 
 #' @param what a table name or sql query string
-#' @param psql_opt passed directly to the psql command line
+#' @param psql_opts passed directly to the psql command line
 #' 
 #' @details
 #' These functions use the SQL COPY command and therefore are much
@@ -700,19 +700,20 @@ reset_conn_defaults = function()
 #' dim(hflights)
 #' 
 #' system(paste("createdb rpgtesting"))
-#' connect("rpgtesting")
-#' begin()
-#' 
-#' system.time(write_table(hflights))
-#' system.time(invisible(read_table("hflights")))
-#' 
-#' rollback()
-#' disconnect()
 #' 
 #' opts = paste("-d rpgtesting")
 #' system.time(copy_to(hflights, psql_opts = opts))
 #' system.time(invisible(copy_from("hflights", psql_opts = opts)))
 #' 
+#' connect("rpgtesting")
+#' begin()
+#' 
+#' ## Sloooowwwwwww
+#' ## system.time(write_table(hflights))
+#' system.time(invisible(read_table("hflights")))
+#' 
+#' rollback()
+#' disconnect()
 #' system(paste("dropdb rpgtesting"))}
 #' 
 #' @rdname copy
@@ -957,12 +958,13 @@ list_stowed = function(tablename = "rpgstow", schemaname = "rpgstow")
 #' @export
 retrieve = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
 {
+  env = parent.frame()
   tableid = format_tablename(tablename, schemaname)
   sql = paste("SELECT * FROM", tableid, "WHERE objname ~ $1")
   for ( n in objnames )
   {
     res = fetch_stowed(sql, n)
-    lapply(names(res), function(n) assign(n, res[[n]], envir = .GlobalEnv))
+    lapply(names(res), function(n) assign(n, res[[n]], envir = env))
   }
   invisible()
 }
