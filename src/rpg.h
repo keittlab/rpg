@@ -322,6 +322,12 @@ static const char* tempfile()
   return as<const char*>(tf());
 }
 
+static void unlink_file(const char* filename)
+{
+  Function ul("unlink");
+  ul(filename);
+}
+
 static CharacterVector make_status(const char* status,
                                    const bool with_err = false,
                                    const bool with_cmd = false)

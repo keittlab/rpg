@@ -262,7 +262,7 @@ void trace_conn(const char* filename = "", bool append = false)
 // [[Rcpp::export]]
 void untrace_conn(bool remove = false)
 {
-  if ( remove && tracefname ) unlink(tracefname);
+  if ( remove && tracefname ) unlink_file(tracefname);
   clear_tracef();
 }
 
