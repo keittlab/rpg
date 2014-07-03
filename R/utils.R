@@ -57,7 +57,7 @@ print.pq.status = function(x, ...)
     command.status = attr(x, "command.status")
     if ( is_non_empty_string(command.status) )
       print.message(command.status)
-    else if ( x == "PGRES_FATAL_ERROR" )
+    else if ( x %in% c("PGRES_FATAL_ERROR", "BUSY", "DONE") )
       print.message(x)
   }
   invisible(x)

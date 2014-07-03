@@ -337,7 +337,7 @@ List get_conn_defaults(const bool all = false)
   PQconninfoOption *defs = PQconndefaults(), *i = defs;
   while ( i && i->keyword )
   {
-    if ( all || i->val && strlen(i->val) )
+    if ( all || (i->val && strlen(i->val)) )
     {
       kw.push_back(i->keyword);
       ev.push_back(i->envvar ? i->envvar : "");
@@ -818,8 +818,7 @@ bool async_query(const char* sql = "", SEXP pars = R_NilValue)
 // [[Rcpp::export]]
 CharacterVector async_status()
 {
-  if ( PQconsumeInput(conn) == 0 )
-    stop(PQerrorMessage(conn));
+  if ( PQconsumeInput(conn) == 0 ) stop(PQerrorMessage(conn));
   if ( PQisBusy(conn) == 1 ) return make_status("BUSY");
   PGresult *r = PQgetResult(conn);
   if ( r )
@@ -839,6 +838,8 @@ CharacterVector async_status()
 // [[Rcpp::export]]
 bool is_busy()
 {
+  if ( PQconsumeInput(conn) == 0 )
+    stop(PQerrorMessage(conn));
   return PQisBusy(conn) == 1;
 }
 

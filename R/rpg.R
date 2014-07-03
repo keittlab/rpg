@@ -343,13 +343,13 @@ describe_table = function(tablename, schemaname = NULL)
 #' write_table(mtcars)
 #' 
 #' # make "cyl" primary key (will fail unique constraint)
-#' write_table(mtcars, pkey = "cyl", overwrite = T)
+#' write_table(mtcars, pkey = "cyl", overwrite = TRUE)
 #' 
 #' # also write row names to "id"
-#' write_table(mtcars, row_names = "id", overwrite = T)
+#' write_table(mtcars, row_names = "id", overwrite = TRUE)
 #' 
 #' # row names as primary key
-#' write_table(mtcars, row_names = "id", pkey = "id", overwrite = T)
+#' write_table(mtcars, row_names = "id", pkey = "id", overwrite = TRUE)
 #' 
 #' # default R row names and only first 3 columns
 #' read_table("mtcars", what = "mpg, cyl, disp", limit = 3)
@@ -358,7 +358,7 @@ describe_table = function(tablename, schemaname = NULL)
 #' read_table("mtcars", row_names = "id", limit = 3)
 #' 
 #' # get row names from primary key
-#' read_table("mtcars", pkey_to_row_names = T, limit = 3)
+#' read_table("mtcars", pkey_to_row_names = TRUE, limit = 3)
 #' 
 #' #cleanup
 #' rollback()
@@ -520,7 +520,7 @@ print.pg.trace.dump = function(x, ...)
 #'  
 #' # write data frame contents
 #' data(mtcars)
-#' write_table(mtcars, row_names = "id", pkey = "id", overwrite = T)
+#' write_table(mtcars, row_names = "id", pkey = "id", overwrite = TRUE)
 #' 
 #' # expand rows to columns 8 rows at a time
 #' x = foreach(i = cursor("SELECT * FROM mtcars", 8),
