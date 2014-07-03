@@ -118,6 +118,45 @@ SEXP get_conn_info_()
   return wrap(info);
 }
 
+//' @return \code{result_dim} returns the number of tuples and fields
+//' @rdname query
+//' @export
+// [[Rcpp::export]]
+IntegerVector result_dim()
+{
+  IntegerVector out(2);
+  out[0] = PQntuples(res);
+  out[1] = PQnfields(res);
+  return out;
+}
+
+// [[Rcpp::export]]
+IntegerMatrix get_tuple_info()
+{
+  int nrow = PQntuples(res),
+      ncol = PQnfields(res);
+  IntegerMatrix out(6, ncol);
+  CharacterVector coln(ncol), rown(6);
+  for ( int i = 0; i != ncol; ++i )
+  {
+    coln[i] = PQfname(res, i);
+    out(0, i) = PQftable(res, i);
+    out(1, i) = PQftablecol(res, i);
+    out(2, i) = PQfformat(res, i);
+    out(3, i) = PQftype(res, i);
+    out(4, i) = PQfmod(res, i);
+    out(5, i) = PQfsize(res, i);
+  }
+  rown[0] = "Table OID";
+  rown[1] = "Table column OID";
+  rown[2] = "Field format";
+  rown[3] = "Field type";
+  rown[4] = "Field type modifier";
+  rown[5] = "Field server storage size";
+  out.attr("dimnames") = List::create(rown, coln);
+  return out;
+}
+
 //' PostgreSQL query
 //' 
 //' Issue a query to the current database connection
@@ -146,13 +185,16 @@ SEXP get_conn_info_()
 //' system("createdb rpgtesting")
 //' connect("rpgtesting")
 //' begin()
-//' query("DROP SCHEMA IF EXISTS rpgtesting CASCADE")
-//' query("CREATE SCHEMA rpgtesting")
-//' query("SET search_path TO rpgtesting")
-//' query("DROP TABLE IF EXISTS test")
-//' query("CREATE TABLE test (id integer, field text)")
+//' execute("DROP SCHEMA IF EXISTS rpgtesting CASCADE")
+//' execute("CREATE SCHEMA rpgtesting")
+//' execute("SET search_path TO rpgtesting")
+//' execute("DROP TABLE IF EXISTS test")
+//' execute("CREATE TABLE test (id integer, field text)")
 //' query("INSERT INTO test VALUES ($1, $2)", c(1, "test"))
 //' fetch("SELECT * FROM test")
+//' result_dim()
+//' fetch("SELECT * FROM testing")
+//' query_error()
 //' rollback()
 //' disconnect()
 //' system("dropdb rpgtesting")}
@@ -650,8 +692,7 @@ List show_conn_stack()
 //' there is nothing more to fetch.
 //' 
 //' If \code{async_status} does not return \code{"DONE"}, then
-//' \code{finish_async} must be called to release all results. Otherwise some 
-//' result objects will leak, at least until the connection is closed. Note
+//' you should call \code{finish_async} to free pending results. Note
 //' that a call to \code{finish_async} may block until the server is finished
 //' processing the command. It calls \code{cancel} internally but there is
 //' no guarantee the command will abort.
@@ -661,12 +702,14 @@ List show_conn_stack()
 //' will still return true)
 //' \code{async_status}: a results status object, possibly indicating an
 //' invalid query
+//' \code{is_busy}: a boolean
 //' 
 //' @note In practice, you will be much better off using \code{\link{cursor}}
 //' as that will usually return very quickly even for large queries, and has
 //' the advantage of retrieving the results in chunks. You can call \code{cancel}
-//' while a cursor is active. It will simply return \code{PGRES_FATAL_ERROR} is
-//' the \code{cancel} is effective.
+//' while a cursor is active. The cursor will return \code{PGRES_FATAL_ERROR} if
+//' the \code{cancel} is effective. Alternately, issuing any query that sets the
+//' result status will have the same effect as \code{finish_async}.
 //' 
 //' @author Timothy H. Keitt
 //'  
@@ -692,7 +735,7 @@ List show_conn_stack()
 //'   Sys.sleep(1)
 //' }
 //' print(status)
-//' print(head(fetch()))
+//' head(fetch())
 //' finish_async()
 //' Sys.sleep(1)
 //' 
@@ -725,9 +768,26 @@ List show_conn_stack()
 //' sql2 = "SELECT cyl FROM mtcars LIMIT 4"
 //' async_query(paste(sql1, sql2, sep = "; "))
 //' while ( async_status() == "BUSY" ) NULL
-//' print(fetch())
-//' while ( async_status() == "BUSY" ) NULL
-//' print(fetch())
+//' fetch()
+//' while ( is_busy() ) NULL
+//' async_status()
+//' fetch()
+//' finish_async()
+//' 
+//' # issue an async query and come back later
+//' async_query(sql1)
+//' push_conn()
+//' connect("rpgtesting")
+//' 
+//' # fails because of transaction isolation
+//' fetch(sql2)
+//' pop_conn()
+//' async_status()
+//' 
+//' # results from sql1
+//' fetch()
+//' 
+//' # this is automatic if you issue new queries
 //' finish_async()
 //' 
 //' # cleanup
@@ -747,6 +807,12 @@ bool async_query(const char* sql = "", SEXP pars = R_NilValue)
     return send_exec_params(sql, pars) == 1;
 }
 
+//' @details Any pending results will be lost if you call \code{\link{query}},
+//' \code{\link{execute}} or \code{\link{fetch}} with a \code{sql} string prior
+//' to \code{async_query} returning \code{DONE}. If you need to issue queries
+//' while waiting on an async call, then use \code{\link{push_conn}} to save
+//' the query state, \code{\link{connect}} to make a new connetion, and then
+//' \code{\link{pop_conn}} followed by \code{async_status}.
 //' @export
 //' @rdname async
 // [[Rcpp::export]]
@@ -763,6 +829,17 @@ CharacterVector async_status()
     return result_status();
   }
   else return make_status("DONE");
+}
+
+//' @details \code{is_busy} is a slightly faster shortcut to check whether the
+//' server has completed the query. You must still call \code{async_status} to
+//' fetch the results.
+//' @export
+//' @rdname async
+// [[Rcpp::export]]
+bool is_busy()
+{
+  return PQisBusy(conn) == 1;
 }
 
 //' @param stop_on_error call \code{\link{stop}} if cancel request cannot be issued

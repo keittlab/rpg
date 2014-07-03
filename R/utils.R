@@ -178,7 +178,7 @@ check_schema = function(schemaname)
               "information_schema.schemata",
               "where schema_name = $1")
   res = fetch(sql, schemaname)
-  if ( inherits(res, "pg.status") ) stop(status)
+  if ( inherits(res, "pg.status") ) stop(res)
   if (  res[[1]] ) execute("create schema", dquote_esc(schemaname))
 }
 
@@ -189,7 +189,7 @@ check_stow = function(tablename, schemaname)
               "information_schema.tables",
               "where table_name = $1")
   res = fetch(sql, tablename)
-  if ( inherits(res, "pg.status") ) stop(status)
+  if ( inherits(res, "pg.status") ) stop(res)
   if ( res[[1]] )
       execute("create table", format_tablename(tablename, schemaname),
               "(objname text primary key, object bytea)")
