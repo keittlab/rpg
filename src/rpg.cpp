@@ -364,13 +364,24 @@ List get_conn_defaults(const bool all = false)
 //' 
 //' @examples
 //' \dontrun{
+//' # try connecting to default database
+//' system("createdb rpgtesting")
+//' connect("rpgtesting")
+//' begin()
+//' 
 //' libpq_version()
 //' encrypt_password("test", "tester")
 //' get_encoding()
 //' set_encoding("UTF8")
 //' set_error_verbosity("terse")
 //' set_error_verbosity("verbose")
-//' set_error_verbosity("default")}
+//' set_error_verbosity("default")
+//'
+//' # cleanup
+//' rollback()
+//' disconnect()
+//' system("dropdb rpgtesting")}
+//' 
 //' @rdname misc
 //' @export
 // [[Rcpp::export]]
@@ -873,6 +884,7 @@ CharacterVector exec_param_serialize(const char* sql, SEXP obj)
 // [[Rcpp::export]]
 List fetch_stowed(const char* sql, const char* par)
 {
+  check_conn();
   set_res(PQexecParams(conn, sql, 1, NULL, &par, NULL, NULL, 1));
   int nrow = PQntuples(res),
       ncol = PQnfields(res);

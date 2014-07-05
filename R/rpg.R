@@ -378,7 +378,7 @@ write_table = function(x,
   if ( missing(tablename) )
     tablename = deparse(substitute(x))
   x = as.data.frame(x, stringsAsFactors = FALSE)
-  if ( prod(dim(x)) < 1 ) stop("Empty input")
+  if ( prod(dim(x)) == 0 ) stop("Empty input")
   tableid = format_tablename(tablename, schemaname)
   x = handle_row_names(x, row_names)
   colnames = make.unique(names(x), "")
@@ -992,10 +992,10 @@ stow_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 {
   sp = savepoint(); on.exit(rollback(sp))
   delete_stowed('.*', imagename, schemaname)
-  args = as.list(ls(envir = .GlobalEnv, all.names = TRUE))
+  args = as.list(ls(envir = globalenv(), all.names = TRUE))
   args$tablename = imagename
   args$schemaname = schemaname
-  do.call("stow", args, envir = .GlobalEnv)
+  do.call("stow", args, envir = globalenv())
   on.exit(commit(sp))
 }
 
@@ -1003,5 +1003,8 @@ stow_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 #' @export
 retrieve_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 {
-  retrieve('.*', imagename, schemaname)
+  args = list(objnames = '.*',
+              tablename = imagename,
+              schemaname = schemaname)
+  do.call("retrieve", args, envir = globalenv())
 }
