@@ -10,7 +10,7 @@
 #' \tabular{ll}{
 #' Package: \tab rpg\cr
 #' Type: \tab Package\cr
-#' Version: \tab 0.1\cr
+#' Version: \tab 1.0\cr
 #' Date: \tab 2013-6-4\cr
 #' License: \tab GPL \cr
 #' }
@@ -149,7 +149,7 @@ execute = function(...)
 #' If \code{psql_opts} is an empty string, then an attempt will be made to
 #' supply suitable options based on the current connection. If there is no
 #' active connection, psql will fallback to complied in defaults. If
-#' \code{psql_opts} is not an empty string, then it will be passed as is to
+#' \code{psql_opts} is not an empty string, then it will be passed as-is to
 #' psql.
 #' 
 #' You can type psql's escape commands as usual. Try \code{\?}. You
