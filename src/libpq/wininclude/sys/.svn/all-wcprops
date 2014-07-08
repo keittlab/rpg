@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude/sys
+END
+wait.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude/sys/wait.h
+END
+socket.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude/sys/socket.h
+END

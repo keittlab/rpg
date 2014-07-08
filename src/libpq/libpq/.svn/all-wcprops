@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq
+END
+auth.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/auth.h
+END
+crypt.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/crypt.h
+END
+md5.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/md5.h
+END
+libpq.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/libpq.h
+END
+ip.h
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/ip.h
+END
+pqformat.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/pqformat.h
+END
+hba.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/hba.h
+END
+libpq-be.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/libpq-be.h
+END
+pqcomm.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/pqcomm.h
+END
+be-fsstubs.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/be-fsstubs.h
+END
+libpq-fs.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/libpq-fs.h
+END
+pqsignal.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/259/trunk/RPostgreSQL/src/libpq/libpq/pqsignal.h
+END

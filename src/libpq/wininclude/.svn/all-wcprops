@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude
+END
+netdb.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude/netdb.h
+END
+pwd.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/211/trunk/RPostgreSQL/src/libpq/wininclude/pwd.h
+END
