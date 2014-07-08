@@ -1,6 +1,0 @@
-#!/bin/sh
-${R_HOME}/bin/R<<EOF --vanilla --quiet
-  if ( require(Rcpp) ) compileAttributes()
-  if ( require(roxygen2) ) roxygenize()
-EOF
-exit

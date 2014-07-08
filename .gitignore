@@ -10,4 +10,4 @@ src/RcppExports.cpp
 R/RcppExports.R
 .DS_Store
 README.html
-
+autom4te.cache

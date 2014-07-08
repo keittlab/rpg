@@ -1,12 +1,14 @@
 # Process this file with autoconf to produce a configure script.
 #
+# This file is from the RPostresSQL package. It is slightly modified for rpg.
+#
 # Configure.in for RPostgreSQL
 # Copyright (C) 2008 Dirk Eddelbuettel and licensed under GNU GPL
 #
 # This file draws heavily on configure.in files from littler, RMySQL, and RdbiPgSQL
 
 # Set the name and version -- the version set here will propagate to other files from here
-AC_INIT(RPostgreSQL, 0.5)
+AC_INIT(rpg, 1.0)
 
 AC_CONFIG_AUX_DIR(src)
 
