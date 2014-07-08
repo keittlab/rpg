@@ -7,7 +7,7 @@ Author: Timothy H. Keitt
 Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
 Description: Allows ad hoc queries and reading and
     writing data frames to and from a database.
-License: GPL
+License: GPL (>=2)
 URL: http://www.postgresql.org/, https://github.com/thk686/rpg,
     http://www.keittlab.org/
 Imports:
@@ -22,3 +22,5 @@ LinkingTo: Rcpp, RApiSerialize
 SystemRequirements: libpq
 Depends:
     R (>= 3.0.0)
+NeedsCompilation: yes
+
