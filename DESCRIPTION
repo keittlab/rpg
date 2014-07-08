@@ -23,4 +23,3 @@ SystemRequirements: libpq
 Depends:
     R (>= 3.0.0)
 NeedsCompilation: yes
-
