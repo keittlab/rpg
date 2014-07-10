@@ -4,10 +4,6 @@
 src/*.o
 src/*.so
 src/*.dll
-NAMESPACE
-man/*.Rd
-src/RcppExports.cpp
-R/RcppExports.R
 .DS_Store
 README.html
 autom4te.cache
@@ -15,5 +11,5 @@ autom4te.cache
 */.svn
 config.log
 config.status
-src/Makevars
+
 
