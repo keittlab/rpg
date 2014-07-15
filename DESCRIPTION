@@ -26,4 +26,5 @@ NeedsCompilation: yes
 Note: The files configure.in, cleanup, Makevars.in and Makevars.win are based
     on the same files found in RPostgreSQL. I thank Dirk Eddelbuettel for
     giving the go ahead to resue thier build setup. Copyright of the unmodified
-    protions remains with the original authors.
+    protions remains with the original authors. The files in /src/libpq/ are part
+    of PostgreSQL.
