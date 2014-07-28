@@ -10,8 +10,8 @@
 #' \tabular{ll}{
 #' Package: \tab rpg\cr
 #' Type: \tab Package\cr
-#' Version: \tab 1.0\cr
-#' Date: \tab 2013-6-4\cr
+#' Version: \tab 1.1\cr
+#' Date: \tab 2014-7-28\cr
 #' License: \tab GPL \cr
 #' }
 #' The main functions are \code{connect}, which establishes a connection,
