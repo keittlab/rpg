@@ -91,7 +91,7 @@ charvec_to_vec_cstr(CharacterVector x, const bool null_terminate = false)
 {
   std::vector<const char*> out(x.size());
   for ( int i = 0; i != x.size(); ++i )
-    out[i] = x[i] == NA_STRING ? NULL : as<const char*>(x[i]);
+    out[i] = ( x[i] == NA_STRING ) ? NULL : as<const char*>(x[i]);
   if ( null_terminate ) out.push_back(NULL);
   return out;
 }
@@ -208,11 +208,13 @@ static void exec_params(const char* sql, SEXP pars)
   set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
 }
 
+/*
 static void exec_prepared(CharacterVector pars, const char* name = "")
 {
   std::vector<const char*> vals = charvec_to_vec_cstr(pars);
   set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0)); 
 }
+*/
 
 static void exec_prepared_rows(CharacterMatrix pars, const char* name = "")
 {

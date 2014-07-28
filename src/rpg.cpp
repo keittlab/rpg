@@ -133,8 +133,7 @@ IntegerVector result_dim()
 // [[Rcpp::export]]
 IntegerMatrix get_tuple_info()
 {
-  int nrow = PQntuples(res),
-      ncol = PQnfields(res);
+  int ncol = PQnfields(res);
   IntegerMatrix out(6, ncol);
   CharacterVector coln(ncol), rown(6);
   for ( int i = 0; i != ncol; ++i )
