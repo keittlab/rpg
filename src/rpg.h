@@ -87,12 +87,12 @@ static void clear_all()
 }
 
 static std::vector<const char*>
-charvec_to_vec_char(CharacterVector x, const bool null_terminate = false)
+charvec_to_vec_cstr(CharacterVector x, const bool null_terminate = false)
 {
   std::vector<const char*> out(x.size());
   for ( int i = 0; i != x.size(); ++i )
-    out[i] = x[i] == NA_STRING ? '\0' : CHAR(x[i]);
-  if ( null_terminate ) out.push_back('\0');
+    out[i] = x[i] == NA_STRING ? NULL : as<const char*>(x[i]);
+  if ( null_terminate ) out.push_back(NULL);
   return out;
 }
 
@@ -104,8 +104,8 @@ rpg_notice_processor(void *arg, const char *message)
 
 static void setup_connection(CharacterVector keywords, CharacterVector values)
 {
-  std::vector<const char*> kw = charvec_to_vec_char(keywords, true),
-                           vals = charvec_to_vec_char(values, true);
+  std::vector<const char*> kw = charvec_to_vec_cstr(keywords, true),
+                           vals = charvec_to_vec_cstr(values, true);
   set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
   if ( PQstatus(conn) == CONNECTION_OK )
   {
@@ -210,7 +210,7 @@ static void exec_params(const char* sql, SEXP pars)
 
 static void exec_prepared(CharacterVector pars, const char* name = "")
 {
-  std::vector<const char*> vals = charvec_to_vec_char(pars);
+  std::vector<const char*> vals = charvec_to_vec_cstr(pars);
   set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0)); 
 }
 
@@ -219,7 +219,7 @@ static void exec_prepared_rows(CharacterMatrix pars, const char* name = "")
   for ( int i = 0; i != pars.nrow(); ++i )
   {
     CharacterVector row = pars.row(i);
-    std::vector<const char*> vals = charvec_to_vec_char(row);
+    std::vector<const char*> vals = charvec_to_vec_cstr(row);
     set_res(PQexecPrepared(conn, name, vals.size(), &vals[0], NULL, NULL, 0));
     if ( PQresultStatus(res) == PGRES_FATAL_ERROR ) return;
   }

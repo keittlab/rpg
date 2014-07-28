@@ -44,12 +44,6 @@ Do not open a connection and then fork the R
 process. The behavior will be unpredictable. It is perfectly
 acceptable however to call \code{connect} within each
 forked instance.
-
-Be careful with \code{ping} as it will attempt to connect to
-the database server on a remote host, which might not be
-appreciated by a remote administator. Also, \code{ping} may
-seem to hang for a long time. It is just polling the connection
-until it times out.
 }
 \examples{
 \dontrun{
