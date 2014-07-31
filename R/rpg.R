@@ -576,7 +576,7 @@ cursor = function(sql, by = 1)
   structure(list(nextElem = f), class = c('cursor', 'abstractiter', 'iter'))
 }
 
-#' @param x a matrix of parameter values
+#' @param x parameter values
 #' @rdname prepare
 #' @export
 execute_prepared = function(x, name = "")
