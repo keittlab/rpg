@@ -182,29 +182,15 @@ static SEXP fetch_par(const char* par)
   return status ? wrap(CharacterVector(status)) : R_NilValue;
 }
 
-static std::vector<const char*> c_str_vec_from_sexp(SEXP x)
+static int send_exec_params(const char* sql, CharacterVector pars)
 {
-  
-  std::vector<const char*> out;
-  x = PROTECT(Rf_coerceVector(x, STRSXP));
-  for ( int i = 0; i != Rf_length(x); ++i )
-  {
-    SEXP csxp = STRING_ELT(x, i);
-    out.push_back(csxp == NA_STRING ? '\0' : CHAR(csxp));
-  }
-  UNPROTECT(1);
-  return out;
-}
-
-static int send_exec_params(const char* sql, SEXP pars)
-{
-  std::vector<const char*> vals = c_str_vec_from_sexp(pars);
+  std::vector<const char*> vals = charvec_to_vec_cstr(pars);
   return PQsendQueryParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0);  
 }
 
-static void exec_params(const char* sql, SEXP pars)
+static void exec_params(const char* sql, CharacterVector pars)
 {
-  std::vector<const char*> vals = c_str_vec_from_sexp(pars);
+  std::vector<const char*> vals = charvec_to_vec_cstr(pars);
   set_res(PQexecParams(conn, sql, vals.size(), NULL, &vals[0], NULL, NULL, 0));  
 }
 

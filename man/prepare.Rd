@@ -13,7 +13,7 @@ execute_prepared(x, name = "")
 
 \item{name}{an optional statement name}
 
-\item{x}{parameter values}
+\item{x}{a matrix of parameter values}
 }
 \value{
 A status string.

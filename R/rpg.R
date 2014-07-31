@@ -576,15 +576,12 @@ cursor = function(sql, by = 1)
   structure(list(nextElem = f), class = c('cursor', 'abstractiter', 'iter'))
 }
 
-#' @param x parameter values
+#' @param x a matrix of parameter values
 #' @rdname prepare
 #' @export
 execute_prepared = function(x, name = "")
 {
   x = as.matrix(x)
-  cols = num_prepared_params(name)
-  rows = ceiling(length(x) / cols)
-  dim(x) = c(rows, cols)
   storage.mode(x) = "character"
   execute_prepared_(x, name)
 }
