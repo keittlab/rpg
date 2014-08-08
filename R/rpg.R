@@ -84,7 +84,16 @@ connect = function(dbname, ...)
   keywords = names(values)
   if ( is.null(keywords) || "" %in% keywords )
     stop("all arguments must be named")
-  connect_(keywords, as.character(values))
+  status = connect_(keywords, as.character(values))
+  if ( status == "CONNECTION_BAD" &&
+       get_conn_info("password.needed") )
+  {
+     pw = get_pw()
+     keywords = c(keywords, "password")
+     values = c(values, pw)
+     return(connect_(keywords, as.character(values)))
+  }
+  return(status)
 }
 
 #' @details \code{fetch} returns the result of a query as a data frame. If

@@ -23,7 +23,7 @@ CharacterVector connect_(CharacterVector keywords, CharacterVector values)
 //' @return \code{ping} returns one of the following:
 //' \tabular{ll}{
 //' \code{PQPING_OK}  \tab Server reachable \cr
-//' \code{PQPING_REJECT } \tab Server reachable but not accepting
+//' \code{PQPING_REJECT} \tab Server reachable but not accepting
 //' connections \cr
 //' \code{PQPING_NO_RESPONSE} \tab Server unreachable \cr
 //' \code{PQPING_NO_ATTEMPT} \tab Connection string is nonsense \cr}

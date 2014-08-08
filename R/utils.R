@@ -195,3 +195,14 @@ check_stow = function(tablename, schemaname)
               "(objname text primary key, object bytea)")
 }
 
+get_pw = function()
+{
+  tt = tcltk::tktoplevel()
+  pass = tcltk::tclVar()
+  tcltk::tkpack(tcltk::tklabel(tt, text = 'Password:'))
+  tcltk::tkpack(tcltk::tkentry(tt, textvariable = pass, show = '*'))
+  tcltk::tkpack(tcltk::tkbutton(tt, text = "Done",
+                                command = function() tcltk::tkdestroy(tt)))
+  tcltk::tkwait.window(tt)
+  tcltk::tclvalue(pass)
+}
