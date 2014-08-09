@@ -13,7 +13,8 @@ URL: http://www.postgresql.org/, http://github.com/thk686/rpg,
 Imports:
     Rcpp (>= 0.11.1),
     uuid (>= 0.1-1),
-    RApiSerialize (>= 0.1.0)
+    RApiSerialize (>= 0.1.0),
+    tcltk (>= 3.0.0)
 Suggests:
     foreach (>= 1.4.2),
     doParallel (>= 1.0.0),

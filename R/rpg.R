@@ -86,7 +86,8 @@ connect = function(dbname, ...)
     stop("all arguments must be named")
   status = connect_(keywords, as.character(values))
   if ( status == "CONNECTION_BAD" &&
-       get_conn_info("password.needed") )
+       get_conn_info("password.needed") &&
+       interactive() )
   {
      pw = get_pw()
      keywords = c(keywords, "password")

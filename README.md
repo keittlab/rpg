@@ -93,18 +93,24 @@ is nothing more to fetch. You can attempt to cancel a command in progress using 
 Installation
 ------------
 
-You wil need to install [libpq](http://www.postgresql.org/download/) as a requirement.
-The configure step will call [pg_config](http://www.postgresql.org/docs/9.1/static/app-pgconfig.html).
-
-If typing
+The [libpq](http://www.postgresql.org/download/) files are now included with the source and used if not found on the system. The developement version of rpg is hosted on [github](https://github.com/thk686/rpg). To install from github try
 
 ```
-system("pg_config --version")
-```
-
-in R does not return anything, then this package will likely not install. To install in R, try
-
-```
-install.packages(c("devtools", "Rcpp", "roxygen2"))
+install.packages(c("devtools", "Rcpp", "roxygen2"))  # can skip if installed
 devtools::install_github("rpg", "thk686")
 ```
+
+The github repo is manually copied as needed to an [r-forge](https://r-forge.r-project.org/projects/rpg/) repository. Provided the build system on r-forge works, you can install using
+
+```
+install.packages("rpg", repos="http://R-Forge.R-project.org")
+```
+
+The lastest released version is on [CRAN](http://cran.r-project.org/web/packages/rpg/index.html) so
+
+```
+install.packages("rpg")
+```
+
+should just work.
+
