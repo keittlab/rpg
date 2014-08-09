@@ -17,14 +17,13 @@ static std::FILE* tracef = NULL;
 
 static std::vector<PGconn*> conn_stack;
 
-static void cancel_(const bool stop_on_error = false)
+static void cancel_()
 {
   char buff[256];
   memset(buff, '\0', 256);
   PGcancel *obj = PQgetCancel(conn);
-  int i = PQcancel(obj, buff, 256);
+  PQcancel(obj, buff, 256);
   PQfreeCancel(obj);
-  if ( !i && stop_on_error ) stop(buff);
 }
 
 static void clear_res()

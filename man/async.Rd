@@ -13,7 +13,7 @@ async_status()
 
 is_busy()
 
-cancel(stop_on_error = TRUE)
+cancel()
 
 finish_async()
 }
@@ -21,8 +21,6 @@ finish_async()
 \item{sql}{a query string}
 
 \item{pars}{a vector of parameters}
-
-\item{stop_on_error}{call \code{\link{stop}} if cancel request cannot be issued}
 }
 \value{
 \code{async_query}: true if query was successfully sent (an invalid query

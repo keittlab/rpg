@@ -855,13 +855,12 @@ bool is_busy()
   return PQisBusy(conn) == 1;
 }
 
-//' @param stop_on_error call \code{\link{stop}} if cancel request cannot be issued
 //' @export
 //' @rdname async
 // [[Rcpp::export]]
-void cancel(const bool stop_on_error = true)
+void cancel()
 {
-  cancel_(stop_on_error);
+  cancel_();
 }
 
 //' @export

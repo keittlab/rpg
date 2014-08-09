@@ -599,11 +599,10 @@ is_busy <- function() {
     .Call('rpg_is_busy', PACKAGE = 'rpg')
 }
 
-#' @param stop_on_error call \code{\link{stop}} if cancel request cannot be issued
 #' @export
 #' @rdname async
-cancel <- function(stop_on_error = TRUE) {
-    invisible(.Call('rpg_cancel', PACKAGE = 'rpg', stop_on_error))
+cancel <- function() {
+    invisible(.Call('rpg_cancel', PACKAGE = 'rpg'))
 }
 
 #' @export

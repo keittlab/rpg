@@ -462,13 +462,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // cancel
-void cancel(const bool stop_on_error = true);
-RcppExport SEXP rpg_cancel(SEXP stop_on_errorSEXP) {
+void cancel();
+RcppExport SEXP rpg_cancel() {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const bool >::type stop_on_error(stop_on_errorSEXP );
-        cancel(stop_on_error);
+        cancel();
     }
     return R_NilValue;
 END_RCPP
