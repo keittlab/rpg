@@ -3,19 +3,23 @@
 \alias{cursor}
 \title{Iterator support}
 \usage{
-cursor(sql, by = 1)
+cursor(sql, by = 1, pars = NULL)
 }
 \arguments{
 \item{sql}{any valid query returning rows}
 
 \item{by}{how many rows to return each iteration}
+
+\item{pars}{optional query parameters}
 }
 \description{
 Construct a row iterator
 }
 \details{
 This function generates an interator object that can be used with
-the \code{foreach-package}. It is possible to use the
+the \code{foreach-package}.
+
+It is possible to use the
 \code{\%dopar\%} operator as shown in the example below. You must
 establish a connection to the database on each node and in your current
 session because the call to \code{cursor} requires it. Note that the
@@ -46,7 +50,7 @@ data(mtcars)
 write_table(mtcars, row_names = "id", pkey = "id", overwrite = TRUE)
 
 # expand rows to columns 8 rows at a time
-x = foreach(i = cursor("SELECT * FROM mtcars", 8),
+x = foreach(i = cursor("SELECT * FROM mtcars", by = 8),
             .combine = rbind) \%do\% { i$mpg }
 print(x, digits = 2)
 
@@ -78,6 +82,7 @@ if ( require(doParallel, quietly = TRUE) )
  row.names(x) = x$rows
  x$rows = NULL
  print(noquote(x))
+
  stopCluster(cl)
 }
 
@@ -90,6 +95,6 @@ system("dropdb rpgtesting")}
 Timothy H. Keitt
 }
 \seealso{
-\code{foreach}, \code{\link{rollback}}
+\code{foreach}, \code{\link{rollback}}, \code{\link{query}}
 }
 

@@ -38,6 +38,10 @@ connection string is composed of \code{keyword = value} pairs
 separated by whitespace. You can either pass the entire string
 or use named arguments. The names of the arguments will be used
 as keywords and their values as values.
+
+If a password was required but not provided, \code{connect} will
+will open a dialog and prompt for a password. The connection is
+then re-tried and the status returned.
 }
 \note{
 Do not open a connection and then fork the R
