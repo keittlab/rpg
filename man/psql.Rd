@@ -28,9 +28,7 @@ things with \code{\!} will likely hang the R session.
 
 There is no way to direclty enter a database password. If one is required,
 you can use a \href{http://www.postgresql.org/docs/9.1/static/libpq-pgpass.html}{password file}
-or \code{\link{set_conn_defaults}}. Note that neither solution
-is very secure, especially \code{\link{set_conn_defaults}} which will
-assign your password to an environment variable.
+or \code{\link{set_conn_defaults}}.
 
 Unfortunately it is probably impossible to enable GNU readline support
 so for example up-arrow will recall your R commands, not the psql
@@ -38,5 +36,8 @@ commands entered. You can always call psql from a terminal.
 }
 \author{
 Timothy H. Keitt
+}
+\seealso{
+\code{\link{set_default_password}}
 }
 

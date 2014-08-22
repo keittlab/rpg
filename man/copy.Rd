@@ -77,4 +77,7 @@ system(paste("dropdb rpgtesting"))}
 \author{
 Timothy H. Keitt
 }
+\seealso{
+\code{\link{set_default_password}}
+}
 

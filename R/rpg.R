@@ -10,8 +10,8 @@
 #' \tabular{ll}{
 #' Package: \tab rpg\cr
 #' Type: \tab Package\cr
-#' Version: \tab 1.1\cr
-#' Date: \tab 2014-7-28\cr
+#' Version: \tab 1.2\cr
+#' Date: \tab 2014-8-22\cr
 #' License: \tab GPL \cr
 #' }
 #' The main functions are \code{connect}, which establishes a connection,
@@ -166,21 +166,22 @@ execute = function(...)
 #' 
 #' There is no way to direclty enter a database password. If one is required,
 #' you can use a \href{http://www.postgresql.org/docs/9.1/static/libpq-pgpass.html}{password file}
-#'or \code{\link{set_conn_defaults}}. Note that neither solution
-#' is very secure, especially \code{\link{set_conn_defaults}} which will
-#' assign your password to an environment variable.
+#'or \code{\link{set_conn_defaults}}.
 #' 
 #' Unfortunately it is probably impossible to enable GNU readline support
 #' so for example up-arrow will recall your R commands, not the psql
 #' commands entered. You can always call psql from a terminal.
 #' 
 #' @author Timothy H. Keitt
+#'
+#' @seealso \code{\link{set_default_password}}
 #' 
 #' @export
 psql = function(psql_opts = "")
 {
   psql_path = Sys.which("psql")
   if ( nchar(psql_path) == 0 ) stop("psql not found")
+  psql_path = proc_psql_passwd(psql_path)
   psql_opts = proc_psql_opts(psql_opts)
   con = pipe(paste(psql_path, psql_opts))
   on.exit(close(con))
@@ -567,11 +568,11 @@ print.pg.trace.dump = function(x, ...)
 #'  x$rows = NULL
 #'  print(noquote(x))
 #'  
+#'  clusterEvalQ(cl, rollback())
 #'  stopCluster(cl)
 #' }
 #' 
 #' #cleanup
-#' rollback()
 #' disconnect()
 #' system("dropdb rpgtesting")}
 #' 
@@ -655,6 +656,20 @@ set_conn_defaults = function(...)
   if ( length(x) ) do.call("Sys.setenv", x)
 }
 
+#' @param password the password
+#' @details \code{set_default_password} will query for a password (if not supplied)
+#' and set the \code{PGPASSWORD} environment variable accordingly. This can be used
+#' with \code{\link{psql}} and \code{\link{copy_to}}.
+#' @rdname connection-utils
+#' @export
+set_default_password = function(password = NULL)
+{
+  if ( is.null(password) )
+    password = get_pw()
+  set_conn_defaults(password = password)
+  invisible()
+}
+
 #' @details \code{reset_conn_defaults} unsets all environment variables returned
 #' by \code{get_conn_defaults(all = TRUE)}.
 #' 
@@ -698,6 +713,8 @@ reset_conn_defaults = function()
 #' data in small bits.
 #' 
 #' @author Timothy H. Keitt
+#' 
+#' @seealso \code{\link{set_default_password}}
 #' 
 #' @examples
 #' \dontrun{

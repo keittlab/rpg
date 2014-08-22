@@ -83,11 +83,11 @@ if ( require(doParallel, quietly = TRUE) )
  x$rows = NULL
  print(noquote(x))
 
+ clusterEvalQ(cl, rollback())
  stopCluster(cl)
 }
 
 #cleanup
-rollback()
 disconnect()
 system("dropdb rpgtesting")}
 }

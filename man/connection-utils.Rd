@@ -6,6 +6,7 @@
 \alias{ping}
 \alias{reset_conn_defaults}
 \alias{set_conn_defaults}
+\alias{set_default_password}
 \title{Database connection utilities}
 \usage{
 ping(opts = "")
@@ -18,6 +19,8 @@ get_conn_info(what = NULL)
 
 set_conn_defaults(...)
 
+set_default_password(password = NULL)
+
 reset_conn_defaults()
 }
 \arguments{
@@ -28,6 +31,8 @@ reset_conn_defaults()
 \item{what}{the fields to return or all if NULL}
 
 \item{...}{a named list of arguments giving new defaults}
+
+\item{password}{the password}
 }
 \value{
 \code{ping} returns one of the following:
@@ -70,6 +75,10 @@ a scalar
 with the connection keywords returned by \code{get_conn_defaults(all = TRUE)}.
 These settings will only last as long as the current shell session and will
 reset after a new login.
+
+\code{set_default_password} will query for a password (if not supplied)
+and set the \code{PGPASSWORD} environment variable accordingly. This can be used
+with \code{\link{psql}} and \code{\link{copy_to}}.
 
 \code{reset_conn_defaults} unsets all environment variables returned
 by \code{get_conn_defaults(all = TRUE)}.
