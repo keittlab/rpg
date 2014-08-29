@@ -224,6 +224,7 @@ get_conn_defaults <- function(all = FALSE) {
 #' set_error_verbosity("terse")
 #' set_error_verbosity("verbose")
 #' set_error_verbosity("default")
+#' enable_postgis()
 #'
 #' # cleanup
 #' rollback()

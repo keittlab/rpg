@@ -375,6 +375,7 @@ List get_conn_defaults(const bool all = false)
 //' set_error_verbosity("terse")
 //' set_error_verbosity("verbose")
 //' set_error_verbosity("default")
+//' enable_postgis()
 //'
 //' # cleanup
 //' rollback()

@@ -20,12 +20,13 @@ Suggests:
     doParallel (>= 1.0.0),
     hflights (>= 0.1)
 LinkingTo: Rcpp, RApiSerialize
-SystemRequirements: libpq
+SystemRequirements: libpq (now included with rpg)
 Depends:
     R (>= 3.0.0)
 NeedsCompilation: yes
 Note: The files configure.in, cleanup, Makevars.in and Makevars.win are based
     on the same files found in RPostgreSQL. I thank Dirk Eddelbuettel for
     giving the go ahead to reuse their build setup. Copyright of the unmodified
-    protions remains with the original authors. The files in src/libpq/ are part
-    of PostgreSQL.
+    protions remains with the original authors. The files in src/libpq/ are
+    part of PostgreSQL. Please refer to http://www.postgresql.org/ for their
+    copyright and license.

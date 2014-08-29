@@ -1035,3 +1035,24 @@ retrieve_image = function(imagename = "rpgimage", schemaname = "rpgstow")
               schemaname = schemaname)
   do.call("retrieve", args, envir = globalenv())
 }
+
+#' @param schemaname install in this schema
+#' @details \code{enable_postgis} will attempt to install the postgis
+#' extension in the named schema. The default search path is altered to
+#' include the new schema.
+#' @rdname misc
+#' @export
+enable_postgis = function(schemaname = "postgis")
+{
+  sp = savepoint()
+  on.exit(rollback(sp))
+  execute("CREATE SCHEMA", schemaname)
+  execute("SET search_path TO", schemaname)
+  execute("CREATE EXTENSION postgis")
+  execute("SET search_path TO default")
+  dpath = fetch("SHOW search_path")[[1]]
+  if ( ! grepl(schemaname, strsplit(dpath, ", ")) )
+    execute("ALTER DATABASE", get_conn_info("dbname"),
+            "SET search_path TO", dpath, ", ", schemaname)
+  on.exit(commit(sp))
+}
