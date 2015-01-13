@@ -311,16 +311,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// prepare
-CharacterVector prepare(const char* sql, const char* name = "");
-RcppExport SEXP rpg_prepare(SEXP sqlSEXP, SEXP nameSEXP) {
+// prepare_
+CharacterVector prepare_(const char* sql, const char* name = "");
+RcppExport SEXP rpg_prepare_(SEXP sqlSEXP, SEXP nameSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< const char* >::type sql(sqlSEXP );
         Rcpp::traits::input_parameter< const char* >::type name(nameSEXP );
-        CharacterVector __result = prepare(sql, name);
+        CharacterVector __result = prepare_(sql, name);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

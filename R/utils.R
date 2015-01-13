@@ -1,3 +1,40 @@
+.onLoad = function(libname, pkgname)
+{
+  NULL
+}
+
+.onUnload = function(libpath)
+{
+  clean_up_all()
+}
+
+#' @export
+format_for_send = function(obj)
+{
+  UseMethod("format_for_send", obj)
+}
+
+#' @export
+format_for_send.default = function(obj) as.character(obj)
+
+#' @export
+format_for_send.list = function(obj)
+{
+  unlist(lapply(obj, format_for_send))
+}
+
+#' @export
+format_for_send.data.frame = function(obj)
+{
+  unlist(lapply(obj, format_for_send))
+}
+
+#' @export
+format_for_send.Date = function(obj)
+{
+  as.character(as.POSIXlt.Date(obj))
+}
+
 pg_type = function(x)
 {
   switch(class(x),
@@ -10,12 +47,6 @@ pg_type = function(x)
          logical = "boolean",
          Date = "date",
          "text")
-}
-
-#' @export
-.Last.lib = function(libpath)
-{
-  clean_up_all()
 }
 
 #' @export
@@ -71,14 +102,6 @@ as.csv = function(...)
 dquote_esc = function(...)
 {
   gsub("\"+", "\"",  paste0(paste0("\"", ...), "\""))
-}
-
-format_dates = function(x)
-{
-  f = function(a) inherits(a, "Date")
-  i = sapply(x, f)
-  if ( any(i) ) x[, i] = format(x[, i])
-  x
 }
 
 format_tablename = function(tablename, schemaname = NULL)

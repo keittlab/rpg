@@ -457,84 +457,8 @@ bool check_transaction()
   return false; // compiler warning
 }
 
-//' Prepared queries
-//' 
-//' Prepare and execute queries
-//' 
-//' @param sql a valid query string
-//' @param name an optional statement name
-//' 
-//' @details These functions allow the preparation of an incomplete
-//' SQL statement and then application of that statement to a arrays
-//' of input parameters.
-//' 
-//' If the number of parameters supplied to \code{execute_prepared} is a
-//' multiple of the number of open parameters in query prepared
-//' using \code{prepare}, then the prepared query will be executed
-//' repeatedly for each successive set of parameters. This repeated
-//' execution loop is evaluted in C++ and so is quite fast. The
-//' supplied parameter values will be coerced to a matrix of the
-//' appropriate dimensions. If the number of supplied parameter
-//' values is not an even multiple of the number of parameters
-//' specified in the prepared statement, an error condition is raised.
-//' The passed parameters will be coerced to character strings.
-//' 
-//' If you supply a \code{name}, then you must use the same name
-//' when calling \code{execute_prepared}. This allows multiple prepared queries.
-//' If you do not supply a name, each call to \code{prepare} will
-//' overwrite the previous prepared statement. The lifetime of
-//' a prepared statement is the lifetime of the current connection
-//' or transaction.
-//' 
-//' @note One can use pure SQL to achieve the same result and
-//' \code{execute_prepared} will work on any prepared statement regardless
-//' of whether it was defined using \code{prepare} or directly with
-//' \code{\link{query}}.
-//' 
-//' It is generally a good idea to wrap \code{prepare}--\code{execute_prepared}
-//' in a transaction. If not in a transaction, you cannot rollback any updates
-//' and it will be much slower as PostgreSQL initiates a transaction-per-query
-//' by default.
-//' 
-//' @return A status string.
-//' 
-//' In the case of \code{execute_prepared} the status of the last command
-//' executed. In case of error, the loop will terminate prematurely and
-//' the status string will contain the error message.
-//' 
-//' @author Timothy H. Keitt
-//' 
-//' @examples
-//' \dontrun{
-//' # try connecting to default database
-//' system("createdb rpgtesting")
-//' connect("rpgtesting")
-//' begin()
-//' 
-//' # write data frame contents
-//' data(mtcars)
-//' write_table(mtcars)
-//' 
-//' # delete the rows
-//' query("truncate mtcars")
-//' read_table(mtcars)
-//' 
-//' # use prepare-execute to write rows
-//' pars = paste0("$", 1:11, collapse = ", ")
-//' sql = paste0("INSERT INTO mtcars VALUES (", pars, ")", collapse = " ")
-//' prepare(sql, "test_statement")
-//' execute_prepared(mtcars, "test_statement")
-//' read_table(mtcars, limit = 5)
-//' 
-//' # cleanup
-//' rollback()
-//' disconnect()
-//' system("dropdb rpgtesting")}
-//' 
-//' @rdname prepare
-//' @export
 // [[Rcpp::export]]
-CharacterVector prepare(const char* sql, const char* name = "")
+CharacterVector prepare_(const char* sql, const char* name = "")
 {
   check_conn();
   set_res(PQprepare(conn, name, sql, 0, NULL));
