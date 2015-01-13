@@ -101,11 +101,8 @@ rpg_notice_processor(void *arg, const char *message)
   Rf_warning(message);
 }
 
-static void setup_connection(CharacterVector keywords, CharacterVector values)
+static void finish_connection_setup()
 {
-  std::vector<const char*> kw = charvec_to_vec_cstr(keywords, true),
-                           vals = charvec_to_vec_cstr(values, true);
-  set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
   if ( PQstatus(conn) == CONNECTION_OK )
   {
     if ( PQprotocolVersion(conn) < 3 )
@@ -113,6 +110,21 @@ static void setup_connection(CharacterVector keywords, CharacterVector values)
     PQsetNoticeProcessor(conn, rpg_notice_processor, NULL);
     PQexec(conn, "set client_min_messages to warning");
   }
+  
+}
+
+static void setup_connection(CharacterVector keywords, CharacterVector values)
+{
+  std::vector<const char*> kw = charvec_to_vec_cstr(keywords, true),
+                           vals = charvec_to_vec_cstr(values, true);
+  set_conn(PQconnectdbParams(&kw[0], &vals[0], 1));
+  finish_connection_setup();
+}
+
+static void reset_connection()
+{
+  PQreset(conn);
+  finish_connection_setup();
 }
 
 static void check_conn()
@@ -120,7 +132,7 @@ static void check_conn()
   if ( PQstatus(conn) == CONNECTION_BAD )
   {
     Rcout << "No connection... attempting reset... ";
-    PQreset(conn);
+    reset_connection();
     if ( PQstatus(conn) == CONNECTION_BAD )
     {
       Rcout << "nope... trying default... ";

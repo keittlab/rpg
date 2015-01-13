@@ -77,7 +77,7 @@ format_dates = function(x)
 {
   f = function(a) inherits(a, "Date")
   i = sapply(x, f)
-  x[, i] = format(x[, i])
+  if ( any(i) ) x[, i] = format(x[, i])
   x
 }
 
