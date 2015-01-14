@@ -145,6 +145,12 @@ unique_name = function()
   dquote_esc(uuid::UUIDgenerate())
 }
 
+unique_statement_id = function()
+{
+  res = uuid::UUIDgenerate()
+  paste0("stmt", gsub("-", "", res))
+}
+
 table_exists = function(table, schema = NULL)
 {
   sql = "select count(*) > 0 from pg_catalog.pg_tables"

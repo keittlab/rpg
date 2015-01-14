@@ -428,9 +428,7 @@ write_table = function(x,
     sqlpars = as.csv(sqlpars)
     sql = paste("INSERT INTO", tableid, "(", colnames, ")")
     sql = paste(sql, "VALUES (", sqlpars, ")")
-    f = prepare(sql)
-    #if ( f == "PGRES_FATAL_ERROR" ) return(f)
-    estatus = f(x)
+    estatus = prepare(sql)(x)
     if ( estatus == "PGRES_FATAL_ERROR" ) return(estatus)
     on.exit(commit(sp))
   }
@@ -610,9 +608,8 @@ cursor = function(sql, by = 1, pars = NULL)
 #' repeatedly for each successive set of parameters. This repeated
 #' execution loop is evaluted in C++ and so is quite fast. The
 #' supplied parameter values will be coerced to a matrix of the
-#' appropriate dimensions. If the number of supplied parameter
-#' values is not an even multiple of the number of parameters
-#' specified in the prepared statement, an error condition is raised.
+#' appropriate dimensions. Values passed to the function will be
+#' recycled to match the number of query parameters.
 #' The passed parameters will be coerced to character strings.
 #'
 #' @note One can use pure SQL to achieve the same result.
@@ -622,7 +619,7 @@ cursor = function(sql, by = 1, pars = NULL)
 #' and it will be much slower as PostgreSQL initiates a transaction-per-query
 #' by default.
 #'
-#' @return A function or a status string on error.
+#' @return A function.
 #' 
 #' The function can take one argument. The values will be used
 #' to fill in parameters of the prepared statement. If no argument
@@ -649,7 +646,7 @@ cursor = function(sql, by = 1, pars = NULL)
 #' pars = paste0("$", 1:11, collapse = ", ")
 #' sql = paste0("INSERT INTO mtcars VALUES (", pars, ")", collapse = " ")
 #' f = prepare(sql)
-#' f()
+#' f(mtcars)
 #' read_table(mtcars, limit = 5)
 #'
 #' # cleanup
@@ -661,24 +658,22 @@ cursor = function(sql, by = 1, pars = NULL)
 #' @export
 prepare = function(sql)
 {
-  stmt = unique_name()
+  stmt = unique_statement_id()
   status = prepare_(sql, stmt)
-  if ( status == "PGRES_COMMAND_OK" )
-    function(x = NULL)
+  if ( status != "PGRES_COMMAND_OK" ) stop(query_error())
+  function(x = NULL)
+  {
+    npars = num_prepared_params(stmt)
+    if ( is.null(x) || npars == 0 )
     {
-      npars = num_prepared_params(stmt)
-      if ( npars == 0 )
-      {
-        execute("EXECUTE", stmt)
-      }
-      else
-      {
-        x = matrix(format_for_send(x), ncol = npars)
-        storage.mode(x) = "character"
-        execute_prepared_(x, stmt)
-      }
+      execute("EXECUTE", stmt)
     }
-  else status
+    else
+    {
+      x = matrix(format_for_send(x), ncol = npars)
+      execute_prepared_(x, stmt)
+    }
+  }
 }
 
 #' @param what the fields to return or all if NULL

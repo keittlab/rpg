@@ -10,7 +10,7 @@ prepare(sql)
 \item{sql}{a valid query string}
 }
 \value{
-A function or a status string on error.
+A function.
 
 The function can take one argument. The values will be used
 to fill in parameters of the prepared statement. If no argument
@@ -30,9 +30,8 @@ using \code{prepare}, then the prepared query will be executed
 repeatedly for each successive set of parameters. This repeated
 execution loop is evaluted in C++ and so is quite fast. The
 supplied parameter values will be coerced to a matrix of the
-appropriate dimensions. If the number of supplied parameter
-values is not an even multiple of the number of parameters
-specified in the prepared statement, an error condition is raised.
+appropriate dimensions. Values passed to the function will be
+recycled to match the number of query parameters.
 The passed parameters will be coerced to character strings.
 }
 \note{
@@ -62,7 +61,7 @@ read_table(mtcars)
 pars = paste0("$", 1:11, collapse = ", ")
 sql = paste0("INSERT INTO mtcars VALUES (", pars, ")", collapse = " ")
 f = prepare(sql)
-f()
+f(mtcars)
 read_table(mtcars, limit = 5)
 
 # cleanup
