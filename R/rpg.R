@@ -1076,7 +1076,7 @@ delete_stowed = function(objnames, tablename = "rpgstow", schemaname = "rpgstow"
   tableid = format_tablename(tablename, schemaname)
   status = prepare(paste("DELETE FROM", tableid, "WHERE objname ~ $1"))
   if ( status == "PGRES_FATAL_ERROR" ) return(status)
-  status = execute_prepared(matrix(objnames, ncol = 1))
+  status = execute_prepared_(matrix(objnames, ncol = 1))
   if ( status == "PGRES_FATAL_ERROR" ) return(status)
   on.exit(commit(sp))
 }

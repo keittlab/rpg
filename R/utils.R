@@ -1,6 +1,6 @@
 .onLoad = function(libname, pkgname)
 {
-  NULL
+  connect()
 }
 
 .onUnload = function(libpath)
@@ -8,6 +8,20 @@
   clean_up_all()
 }
 
+#' Convert R objects to strings
+#' 
+#' Prepare R objects for sending to postgresql
+#' 
+#' @param obj any object
+#' 
+#' @details R objects that will be written to postgresql must be converted to
+#' characters as all data is transferred to the server as text. The S3 method
+#' \code{foramt_for_send} accomplishes this. It accepts any object and returns
+#' a character representation.
+#' 
+#' You can define new conversions by supplying your own S3 override of
+#' \code{format_for_send}.
+#' 
 #' @export
 format_for_send = function(obj)
 {
