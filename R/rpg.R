@@ -1,7 +1,7 @@
 #' @name rpg-package
 #' @aliases rpg
 #' @docType package
-#' @title Easy access to advanced PostgreSQL features
+#' @title Easy Access to Advanced PostgreSQL Features
 #' @description
 #' Provides functions for connecting to, reading from and writing to a PostgreSQL
 #' database. Facilities for tracing the communication between R and PostgreSQL are
