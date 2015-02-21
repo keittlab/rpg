@@ -4,7 +4,7 @@
 \name{rpg-package}
 \alias{rpg}
 \alias{rpg-package}
-\title{Easy access to advanced PostgreSQL features}
+\title{Easy Access to Advanced PostgreSQL Features}
 \description{
 Provides functions for connecting to, reading from and writing to a PostgreSQL
 database. Facilities for tracing the communication between R and PostgreSQL are
@@ -14,8 +14,8 @@ provided, as are function to retieve detailed session metadata.
 \tabular{ll}{
 Package: \tab rpg\cr
 Type: \tab Package\cr
-Version: \tab 1.2\cr
-Date: \tab 2014-8-22\cr
+Version: \tab 1.4\cr
+Date: \tab 2015-2-21\cr
 License: \tab GPL \cr
 }
 The main functions are \code{connect}, which establishes a connection,
