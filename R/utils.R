@@ -22,6 +22,7 @@
 #' You can define new conversions by supplying your own S3 override of
 #' \code{format_for_send}.
 #' 
+#' @rdname format-for-send
 #' @export
 format_for_send = function(obj)
 {

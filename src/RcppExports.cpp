@@ -515,3 +515,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// register_return_formatter
+void register_return_formatter(int ftype, Function f);
+RcppExport SEXP rpg_register_return_formatter(SEXP ftypeSEXP, SEXP fSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< int >::type ftype(ftypeSEXP );
+        Rcpp::traits::input_parameter< Function >::type f(fSEXP );
+        register_return_formatter(ftype, f);
+    }
+    return R_NilValue;
+END_RCPP
+}

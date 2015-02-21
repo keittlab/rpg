@@ -544,3 +544,14 @@ fetch_stowed <- function(sql, par) {
     .Call('rpg_fetch_stowed', PACKAGE = 'rpg', sql, par)
 }
 
+#' @param ftype the PostgreSQL type Oid
+#' @param f a function
+#' @details
+#' The function f must accept a vector of character values and return
+#' a vector of values formated appropriately.
+#' @rdname format-for-send
+#' @export
+register_return_formatter <- function(ftype, f) {
+    invisible(.Call('rpg_register_return_formatter', PACKAGE = 'rpg', ftype, f))
+}
+
