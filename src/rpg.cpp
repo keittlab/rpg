@@ -830,7 +830,7 @@ List fetch_stowed(const char* sql, const char* par)
   return out;
 }
 
-//' @param ftype the PostgreSQL type Oid
+//' @param pgoid the PostgreSQL type Oid
 //' @param f a function
 //' @details
 //' The function f must accept a vector of character values and return
@@ -838,7 +838,7 @@ List fetch_stowed(const char* sql, const char* par)
 //' @rdname format-for-send
 //' @export
 // [[Rcpp::export]]
-void register_return_formatter(int ftype, Function f)
+void register_return_formatter(int pgoid, Function f)
 {
-  format_map[static_cast<Oid>(ftype)] = wrap(f);
+  format_map[static_cast<Oid>(pgoid)] = wrap(f);
 }

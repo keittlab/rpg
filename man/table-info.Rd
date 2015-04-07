@@ -2,12 +2,18 @@
 % Please edit documentation in R/rpg.R
 \name{list_tables}
 \alias{describe_table}
+\alias{list_databases}
+\alias{list_schema}
 \alias{list_tables}
 \title{PostgreSQL database information}
 \usage{
 list_tables(only.names = TRUE)
 
 describe_table(tablename, schemaname = NULL)
+
+list_schema(only.names = TRUE)
+
+list_databases(only.names = TRUE)
 }
 \arguments{
 \item{only.names}{if true, just list the table names}
@@ -37,6 +43,8 @@ write_table(mtcars)
 # get some information
 list_tables()
 describe_table("mtcars")
+list_schema()
+list_databases()
 
 #cleanup
 rollback()

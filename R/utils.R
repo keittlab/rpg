@@ -223,6 +223,7 @@ run_examples = function()
   eval(example(cursor, run.dontrun = T), globalenv())
   eval(example(copy_to, run.dontrun = T), globalenv())
   eval(example(savepoint, run.dontrun = T), globalenv())
+  eval(example(stow, run.dontrun = T), globalenv())
   invisible()
 }
 
@@ -239,14 +240,16 @@ check_schema = function(schemaname)
 check_stow = function(tablename, schemaname)
 {
   check_schema(schemaname)
-  sql = paste("select count(*) = 0 from",
-              "information_schema.tables",
-              "where table_name = $1")
+  sql = "SELECT count(*) = 0
+         FROM information_schema.tables
+         WHERE table_name = $1"
   res = fetch(sql, tablename)
   if ( inherits(res, "pg.status") ) stop(res)
   if ( res[[1]] )
-      execute("create table", format_tablename(tablename, schemaname),
-              "(objname text primary key, object bytea)")
+      execute("CREATE TABLE",
+              format_tablename(tablename, schemaname),
+              "(objname TEXT PRIMARY KEY, object BYTEA,",
+              "stamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP(0))")
 }
 
 get_pw = function()

@@ -5,12 +5,12 @@
 \alias{register_return_formatter}
 \title{Convert R objects to strings}
 \usage{
-register_return_formatter(ftype, f)
+register_return_formatter(pgoid, f)
 
 format_for_send(obj)
 }
 \arguments{
-\item{ftype}{the PostgreSQL type Oid}
+\item{pgoid}{the PostgreSQL type Oid}
 
 \item{f}{a function}
 

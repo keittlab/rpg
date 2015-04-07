@@ -224,6 +224,8 @@ psql = function(psql_opts = "")
 #' # get some information
 #' list_tables()
 #' describe_table("mtcars")
+#' list_schema()
+#' list_databases()
 #' 
 #' #cleanup
 #' rollback()
@@ -292,6 +294,39 @@ describe_table = function(tablename, schemaname = NULL)
               ordinal_position"
     fetch(paste(sql, where, order), c(schemaname, tablename))
   }
+}
+
+#' @rdname table-info
+#' @export
+list_schema = function(only.names = TRUE)
+{
+  res = fetch("SELECT n.nspname AS \"Name\",
+               pg_catalog.pg_get_userbyid(n.nspowner) AS \"Owner\"
+               FROM pg_catalog.pg_namespace n
+               WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'
+               ORDER BY 1")
+  if ( length(res) < 1 ) return(res)
+  if ( inherits(res, "pq.status") ) return(res)
+  if ( only.names ) return(res[[1]])
+  return(res)
+}
+
+#' @rdname table-info
+#' @export
+list_databases = function(only.names = TRUE)
+{
+  res = fetch("SELECT d.datname as \"Name\",
+               pg_catalog.pg_get_userbyid(d.datdba) as \"Owner\",
+               pg_catalog.pg_encoding_to_char(d.encoding) as \"Encoding\",
+               d.datcollate as \"Collate\",
+               d.datctype as \"Ctype\",
+               pg_catalog.array_to_string(d.datacl, E'\n') AS \"Access privileges\"
+               FROM pg_catalog.pg_database d
+               ORDER BY 1")
+  if ( length(res) < 1 ) return(res)
+  if ( inherits(res, "pq.status") ) return(res)
+  if ( only.names ) return(res[[1]])
+  return(res)
 }
 
 #' PostgreSQL data frame IO
@@ -1040,8 +1075,9 @@ stow = function(..., tablename = "rpgstow", schemaname = "rpgstow")
 #' @export
 list_stowed = function(tablename = "rpgstow", schemaname = "rpgstow")
 {
+  check_stow(tablename, schemaname)
   tableid = format_tablename(tablename, schemaname)
-  fetch(paste("SELECT objname FROM", tableid))
+  fetch(paste("SELECT objname, stamp FROM", tableid))
 }
 
 #' @param objnames a character vector with object names or regular expressions
@@ -1059,7 +1095,7 @@ retrieve = function(objnames, tablename = "rpgstow", schemaname = "rpgstow")
 {
   env = parent.frame()
   tableid = format_tablename(tablename, schemaname)
-  sql = paste("SELECT * FROM", tableid, "WHERE objname ~ $1")
+  sql = paste("SELECT objname, object FROM", tableid, "WHERE objname ~ $1")
   for ( n in objnames )
   {
     res = fetch_stowed(sql, n)
@@ -1074,10 +1110,8 @@ delete_stowed = function(objnames, tablename = "rpgstow", schemaname = "rpgstow"
 {
   sp = savepoint(); on.exit(rollback(sp))
   tableid = format_tablename(tablename, schemaname)
-  status = prepare(paste("DELETE FROM", tableid, "WHERE objname ~ $1"))
-  if ( status == "PGRES_FATAL_ERROR" ) return(status)
-  status = execute_prepared_(matrix(objnames, ncol = 1))
-  if ( status == "PGRES_FATAL_ERROR" ) return(status)
+  sql = paste("DELETE FROM", tableid, "WHERE objname ~ $1")
+  prepare(sql)(objnames)
   on.exit(commit(sp))
 }
 
@@ -1090,6 +1124,7 @@ delete_stowed = function(objnames, tablename = "rpgstow", schemaname = "rpgstow"
 stow_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 {
   sp = savepoint(); on.exit(rollback(sp))
+  check_stow(imagename, schemaname)
   delete_stowed('.*', imagename, schemaname)
   args = as.list(ls(envir = globalenv(), all.names = TRUE))
   args$tablename = imagename
@@ -1110,17 +1145,26 @@ retrieve_image = function(imagename = "rpgimage", schemaname = "rpgstow")
 
 #' @param schemaname install in this schema
 #' @details \code{enable_postgis} will attempt to install the postgis
-#' extension in the named schema. The default search path is altered to
-#' include the new schema.
+#' extension in the named schema using \code{enable_extension}.
 #' @rdname misc
 #' @export
 enable_postgis = function(schemaname = "postgis")
+  enable_extension("postgis", schemaname)
+
+#' @param extension the extension name
+#' @details \code{enable_extension} will attempt to install the
+#' extension in the named schema. The default search path is altered to
+#' include the new schema.
+#'
+#' @rdname misc
+#' @export
+enable_extension = function(extension, schemaname = extension)
 {
   sp = savepoint()
   on.exit(rollback(sp))
   execute("CREATE SCHEMA", schemaname)
   execute("SET search_path TO", schemaname)
-  execute("CREATE EXTENSION postgis")
+  execute("CREATE EXTENSION", extension)
   execute("SET search_path TO default")
   dpath = fetch("SHOW search_path")[[1]]
   if ( ! grepl(schemaname, strsplit(dpath, ", ")) )
