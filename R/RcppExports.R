@@ -106,7 +106,7 @@ get_tuple_info <- function() {
 #' 
 #' @examples
 #' \dontrun{
-#' system("createdb rpgtesting")
+#' createdb("rpgtesting")
 #' connect("rpgtesting")
 #' begin()
 #' execute("DROP SCHEMA IF EXISTS rpgtesting CASCADE")
@@ -121,7 +121,7 @@ get_tuple_info <- function() {
 #' query_error()
 #' rollback()
 #' disconnect()
-#' system("dropdb rpgtesting")}
+#' dropdb("rpgtesting")}
 #' 
 #' @rdname query
 #' @export query
@@ -163,14 +163,14 @@ fetch_dataframe <- function() {
 #' 
 #' @examples
 #' \dontrun{
-#' system("createdb rpgtesting")
+#' createdb("rpgtesting")
 #' connect("rpgtesting")
 #' trace_conn()
 #' list_tables()
 #' dump_conn_trace(n = 40)
 #' untrace_conn(remove = TRUE)
 #' disconnect()
-#' system("dropdb rpgtesting")}
+#' dropdb("rpgtesting")}
 #' @rdname tracing
 #' @export
 trace_conn <- function(filename = "", append = FALSE) {
@@ -213,7 +213,7 @@ get_conn_defaults <- function(all = FALSE) {
 #' @examples
 #' \dontrun{
 #' # try connecting to default database
-#' system("createdb rpgtesting")
+#' createdb("rpgtesting")
 #' connect("rpgtesting")
 #' begin()
 #' 
@@ -229,7 +229,7 @@ get_conn_defaults <- function(all = FALSE) {
 #' # cleanup
 #' rollback()
 #' disconnect()
-#' system("dropdb rpgtesting")}
+#' dropdb("rpgtesting")}
 #' 
 #' @rdname misc
 #' @export
@@ -418,7 +418,7 @@ show_conn_stack <- function() {
 #' @examples
 #' \dontrun{
 #' # create a database
-#' system("createdb rpgtesting")
+#' createdb("rpgtesting")
 #' connect("rpgtesting")
 #' begin()
 #' 
@@ -495,7 +495,7 @@ show_conn_stack <- function() {
 #' # cleanup
 #' rollback()
 #' disconnect()
-#' system("dropdb rpgtesting")} 
+#' dropdb("rpgtesting")} 
 #' 
 #' @export
 #' @rdname async
