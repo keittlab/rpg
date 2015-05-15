@@ -1,0 +1,120 @@
+---
+title: "rpg"
+author: "Timothy H. Keitt"
+date: "05/15/2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes uing ```rpg``` a lot like using psql, PostgreSQL's command line interface.
+
+### Installation
+
+```
+install.packages(rpg)                      # Released
+devtools::install_github("thk686/rpg")     # Development
+```
+
+### Connection example
+
+```{r}
+library(rpg)
+createdb("exampledb")
+connect("exampledb")
+data(mtcars)
+write_table(mtcars)
+fetch("select * from mtcars where mpg > 30")
+```
+
+### Connection stack
+
+Even though the database connection is implicit, you are not restricted to a single connection. Connections can be managed on a stack.
+
+```{r}
+push_conn()
+createdb("exampledb2")
+connect("exampledb2")
+data(iris)
+write_table(iris)
+list_tables()
+swap_conn()
+list_tables()
+swap_conn()
+describe_table("iris")
+pop_conn()
+get_conn_info("dbname")
+dropdb("exampledb2")
+```
+
+### Database cursors and foreach
+
+The ```rpg``` package integrates nicely with the iterators package. This allows you to use ```foreach``` to iterate over query results. This is perhaps the most unique feature of ```rpg```.
+
+```{r}
+library(foreach)
+c1 = cursor("SELECT * FROM mtcars", by = 8)
+x = foreach(i = c1, .combine = rbind) %do% { i$mpg }
+print(x, digits = 2)
+```
+
+This usage is compatible with ```%dopar%```; you can access these cursors from multiple threads of execution and even across a heterogeneous cluster of machines. See the documentation for ```cursor``` for an example.
+
+### Asynchronous queries
+
+You can submit asynchronous queries with ```rpg```. When combined with the connnection stack, this allows you to launch queries, push the connection, make a new connection while the first query is completing. By swapping the first connection back to the active state, you can then check for completion or try to cancel the transaction.
+
+```{r}
+async_query("SELECT a.* FROM mtcars a, mtcars b, mtcars c")  # >30,000 rows
+count = 0
+repeat {
+  status = async_status()
+  if (status == "BUSY") {
+    if (count > 2) {
+      cat("calling cancel...\n")
+      cancel() }}
+  else break
+  cat("busy... \n")
+  Sys.sleep(1)
+  count = count + 1 }
+print(status)
+finish_async()
+```
+
+### Transactions and save points
+
+A PostgreSQL-specific feature are save points for nested transactions. ```rpg``` provides a convenient wrapper.
+
+```{r}
+sp1 = savepoint()
+write_table(iris)
+list_tables()
+rollback(sp1)
+list_tables()
+```
+
+### Object serialization and storage
+
+The ```stow``` and ```stow.image``` functions write entire R objects into a database. You can stow your entire working environment and reload it anywhere else you can reconnect to the database. (A facility listing and commenting images is in the works.)
+
+```{r}
+stow("mtcars")
+rm(list = objects())
+ls()
+list_stowed()
+retrieve("mtcars")
+ls()
+```
+
+### Additional features
+
+1. Intelligent handling of passwords: ```rpg``` will query for the password only if it is needed. You can set a default password.
+1. Easy creation of connection aliases: call ```make_service``` and your connection settings will be saved as a named service. You only have to type complex connection options once. If you used a password, that will be saved as well.
+1. Lots of options for getting and setting connection options and defaults.
+1. Easy tracing of data flowing between client and server.
+1. High bandwidth options for reading/writing bulk data from/to the database.
+
+```{r}
+disconnect()
+dropdb("exampledb")
+```
