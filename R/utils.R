@@ -79,31 +79,31 @@ print.pq.error.message = function(x, ...)
 
 print.message = function(x, terminate = "\n")
 {
-  if ( !is.null(x) && nchar(x) > 0 )
+  if (!is.null(x) && nchar(x) > 0)
     cat(x, terminate)
   invisible(x)
 }
 
 is_non_empty_string = function(x)
 {
-  if ( is.null(x) ) return(FALSE)
-  if ( nchar(x) < 1 ) return(FALSE)
+  if (is.null(x)) return(FALSE)
+  if (nchar(x) < 1) return(FALSE)
   return(TRUE)
 }
 
 #' @export
 print.pq.status = function(x, ...)
 {
-  if ( getOption("verbose") ) print.message(x)
+  if (getOption("verbose")) print.message(x)
   error.message = attr(x, "error.message")
-  if ( is_non_empty_string(error.message) )
+  if (is_non_empty_string(error.message))
     print.message(error.message)
   else
   {
     command.status = attr(x, "command.status")
-    if ( is_non_empty_string(command.status) )
+    if (is_non_empty_string(command.status))
       print.message(command.status)
-    else if ( x %in% c("PGRES_FATAL_ERROR", "BUSY", "DONE") )
+    else if (x %in% c("PGRES_FATAL_ERROR", "BUSY", "DONE"))
       print.message(x)
   }
   invisible(x)
@@ -121,7 +121,7 @@ dquote_esc = function(...)
 
 format_tablename = function(tablename, schemaname = NULL)
 {
-  if ( is.null(schemaname) )
+  if (is.null(schemaname))
     dquote_esc(tablename)
   else
     paste(dquote_esc(schemaname), dquote_esc(tablename), sep = ".")
@@ -129,7 +129,7 @@ format_tablename = function(tablename, schemaname = NULL)
 
 handle_row_names = function(a, b)
 {
-  if ( !is.null(b) )
+  if (!is.null(b))
   {
     a = data.frame(row.names(a), a, stringsAsFactors = FALSE)
     names(a)[1] = b
@@ -169,7 +169,7 @@ unique_statement_id = function()
 table_exists = function(table, schema = NULL)
 {
   sql = "select count(*) > 0 from pg_catalog.pg_tables"
-  if ( is.null(schema) )
+  if (is.null(schema))
     sql = paste(sql, "where tablename = $1")
   else
     sql = paste(sql, "where tablename = $1 and schemaname = $2")
@@ -183,16 +183,16 @@ strip_quotes = function(x)
 
 proc_psql_opts = function(psql_opts = "")
 {
-  if ( nchar(psql_opts) == 0 && get_conn_info("status.ok") )
+  if (nchar(psql_opts) == 0 && get_conn_info("status.ok"))
   {
     host = get_conn_info("host")
     dbnm = get_conn_info("dbname")
     port = get_conn_info("port")
     user = get_conn_info("user")
-    if ( !is.null(host) ) psql_opts = paste(psql_opts, "-h", host)
-    if ( !is.null(dbnm) ) psql_opts = paste(psql_opts, "-d", dbnm)
-    if ( !is.null(port) ) psql_opts = paste(psql_opts, "-p", port)
-    if ( !is.null(user) ) psql_opts = paste(psql_opts, "-U", user)
+    if (!is.null(host)) psql_opts = paste(psql_opts, "-h", host)
+    if (!is.null(dbnm)) psql_opts = paste(psql_opts, "-d", dbnm)
+    if (!is.null(port)) psql_opts = paste(psql_opts, "-p", port)
+    if (!is.null(user)) psql_opts = paste(psql_opts, "-U", user)
   }
   psql_opts = paste(psql_opts, "-n -q -w -1")
   return(psql_opts)
@@ -200,8 +200,8 @@ proc_psql_opts = function(psql_opts = "")
 
 proc_psql_passwd = function(psql_command)
 {
-  if ( get_conn_info("status.ok") &&
-       get_conn_info("password.supplied") )
+  if (get_conn_info("status.ok") &&
+      get_conn_info("password.supplied"))
     psql_command = paste0("PGPASSWORD=",
                           get_conn_info("password.used"),
                           " ", psql_command)
@@ -233,8 +233,8 @@ check_schema = function(schemaname)
               "information_schema.schemata",
               "where schema_name = $1")
   res = fetch(sql, schemaname)
-  if ( inherits(res, "pg.status") ) stop(res)
-  if (  res[[1]] ) execute("create schema", dquote_esc(schemaname))
+  if (inherits(res, "pg.status")) stop(res)
+  if (res[[1]]) execute("create schema", dquote_esc(schemaname))
 }
 
 check_stow = function(tablename, schemaname)
@@ -244,8 +244,8 @@ check_stow = function(tablename, schemaname)
          FROM information_schema.tables
          WHERE table_name = $1"
   res = fetch(sql, tablename)
-  if ( inherits(res, "pg.status") ) stop(res)
-  if ( res[[1]] )
+  if (inherits(res, "pg.status")) stop(res)
+  if (res[[1]])
       execute("CREATE TABLE",
               format_tablename(tablename, schemaname),
               "(objname TEXT PRIMARY KEY, object BYTEA,",
@@ -255,6 +255,7 @@ check_stow = function(tablename, schemaname)
 get_pw = function()
 {
   # This is from code floating around the internet
+  cat("Enter your password in the dialog box\n")
   tt = tcltk::tktoplevel()
   pass = tcltk::tclVar()
   tcltk::tkpack(tcltk::tklabel(tt, text = 'Password:'))
