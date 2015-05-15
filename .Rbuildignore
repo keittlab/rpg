@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-README.html
-README.md
+README.*
+
 
 
