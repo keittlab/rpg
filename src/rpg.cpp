@@ -181,7 +181,7 @@ IntegerMatrix get_tuple_info()
 //' 
 //' @examples
 //' \dontrun{
-//' system("createdb rpgtesting")
+//' createdb("rpgtesting")
 //' connect("rpgtesting")
 //' begin()
 //' execute("DROP SCHEMA IF EXISTS rpgtesting CASCADE")
@@ -196,7 +196,7 @@ IntegerMatrix get_tuple_info()
 //' query_error()
 //' rollback()
 //' disconnect()
-//' system("dropdb rpgtesting")}
+//' dropdb("rpgtesting")}
 //' 
 //' @rdname query
 //' @export query
@@ -274,14 +274,14 @@ List fetch_dataframe()
 //' 
 //' @examples
 //' \dontrun{
-//' system("createdb rpgtesting")
+//' createdb("rpgtesting")
 //' connect("rpgtesting")
 //' trace_conn()
 //' list_tables()
 //' dump_conn_trace(n = 40)
 //' untrace_conn(remove = TRUE)
 //' disconnect()
-//' system("dropdb rpgtesting")}
+//' dropdb("rpgtesting")}
 //' @rdname tracing
 //' @export
 // [[Rcpp::export]]
@@ -364,7 +364,7 @@ List get_conn_defaults(const bool all = false)
 //' @examples
 //' \dontrun{
 //' # try connecting to default database
-//' system("createdb rpgtesting")
+//' createdb("rpgtesting")
 //' connect("rpgtesting")
 //' begin()
 //' 
@@ -380,7 +380,7 @@ List get_conn_defaults(const bool all = false)
 //' # cleanup
 //' rollback()
 //' disconnect()
-//' system("dropdb rpgtesting")}
+//' dropdb("rpgtesting")}
 //' 
 //' @rdname misc
 //' @export
@@ -653,7 +653,7 @@ List show_conn_stack()
 //' @examples
 //' \dontrun{
 //' # create a database
-//' system("createdb rpgtesting")
+//' createdb("rpgtesting")
 //' connect("rpgtesting")
 //' begin()
 //' 
@@ -730,7 +730,7 @@ List show_conn_stack()
 //' # cleanup
 //' rollback()
 //' disconnect()
-//' system("dropdb rpgtesting")} 
+//' dropdb("rpgtesting")} 
 //' 
 //' @export
 //' @rdname async
