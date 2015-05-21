@@ -693,20 +693,20 @@ cursor = function(sql, by = 1, pars = NULL)
 #' @export
 prepare = function(sql)
 {
-  stmt = unique_statement_id()
-  status = prepare_(sql, stmt)
+  sid = unique_statement_id()
+  status = prepare_(sql, sid)
   if (status != "PGRES_COMMAND_OK") stop(query_error())
   function(x = NULL)
   {
-    npars = num_prepared_params(stmt)
+    npars = num_prepared_params(sid)
     if (is.null(x) || npars == 0)
     {
-      execute("EXECUTE", stmt)
+      execute("EXECUTE", sid)
     }
     else
     {
       x = matrix(format_for_send(x), ncol = npars)
-      execute_prepared_(x, stmt)
+      execute_prepared_(x, sid)
     }
   }
 }
