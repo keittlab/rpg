@@ -52,7 +52,7 @@ format_for_send.Date = function(obj)
 
 pg_type = function(x)
 {
-  switch(class(x),
+  switch(class(x)[[1]],
          numeric = switch(typeof(x),
                           double = "double precision",
                           integer = "integer",
