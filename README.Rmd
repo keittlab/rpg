@@ -7,7 +7,7 @@ output:
     keep_md: yes
 ---
 
-This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes uing ```rpg``` a lot like using psql, PostgreSQL's command line interface.
+This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface.
 
 ### Installation
 
@@ -40,6 +40,7 @@ write_table(iris)
 list_tables()
 swap_conn()
 list_tables()
+show_conn_stack()
 swap_conn()
 describe_table("iris")
 pop_conn()
@@ -88,6 +89,11 @@ A PostgreSQL-specific feature are save points for nested transactions. ```rpg```
 ```{r}
 sp1 = savepoint()
 write_table(iris)
+sp2 = savepoint()
+data(Loblolly)
+write_table(Loblolly)
+list_tables()
+rollback(sp2)
 list_tables()
 rollback(sp1)
 list_tables()
