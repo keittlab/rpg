@@ -11,5 +11,7 @@ autom4te.cache
 */.svn
 config.log
 config.status
+*.Rproj
+pg_config*.h
 
 
