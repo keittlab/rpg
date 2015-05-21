@@ -2,7 +2,7 @@
 Timothy H. Keitt  
 05/15/2015  
 
-This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes uing ```rpg``` a lot like using psql, PostgreSQL's command line interface.
+This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface.
 
 ### Installation
 
@@ -78,6 +78,15 @@ list_tables()
 
 ```
 ## [1] "mtcars"
+```
+
+```r
+show_conn_stack()
+```
+
+```
+##   host     dbname status.ok
+## 1 <NA> exampledb2      TRUE
 ```
 
 ```r
@@ -227,6 +236,32 @@ write_table(iris)
 ```
 
 ```r
+sp2 = savepoint()
+data(Loblolly)
+write_table(Loblolly)
+```
+
+```
+## CREATE TABLE
+```
+
+```r
+list_tables()
+```
+
+```
+## [1] "Loblolly" "iris"     "mtcars"
+```
+
+```r
+rollback(sp2)
+```
+
+```
+## ROLLBACK
+```
+
+```r
 list_tables()
 ```
 
@@ -278,7 +313,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2015-05-15 15:31:54-05
+## 1  mtcars  2015-05-21 14:50:12-05
 ```
 
 ```r
