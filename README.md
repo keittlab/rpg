@@ -16,10 +16,8 @@ devtools::install_github("thk686/rpg")     # Development
 
 ```r
 library(rpg)
-createdb("exampledb")
-connect("exampledb")
-data(mtcars)
-write_table(mtcars)
+createdb("exampledb"); connect("exampledb")
+data(mtcars); write_table(mtcars)
 ```
 
 ```
@@ -49,10 +47,8 @@ Even though the database connection is implicit, you are not restricted to a sin
 
 ```r
 push_conn()
-createdb("exampledb2")
-connect("exampledb2")
-data(iris)
-write_table(iris)
+createdb("exampledb2"); connect("exampledb2")
+data(iris); write_table(iris); list_tables()
 ```
 
 ```
@@ -63,17 +59,12 @@ write_table(iris)
 ## CREATE TABLE
 ```
 
-```r
-list_tables()
-```
-
 ```
 ## [1] "iris"
 ```
 
 ```r
-swap_conn()
-list_tables()
+swap_conn(); list_tables()
 ```
 
 ```
@@ -90,8 +81,7 @@ show_conn_stack()
 ```
 
 ```r
-swap_conn()
-describe_table("iris")
+swap_conn(); describe_table("iris")
 ```
 
 ```
@@ -104,8 +94,7 @@ describe_table("iris")
 ```
 
 ```r
-pop_conn()
-get_conn_info("dbname")
+pop_conn(); get_conn_info("dbname")
 ```
 
 ```
@@ -219,7 +208,7 @@ A PostgreSQL-specific feature are save points for nested transactions. ```rpg```
 
 
 ```r
-sp1 = savepoint()
+sp1 = savepoint(); write_table(iris)
 ```
 
 ```
@@ -227,26 +216,16 @@ sp1 = savepoint()
 ## Initiating new transaction block... done.
 ```
 
-```r
-write_table(iris)
-```
-
 ```
 ## CREATE TABLE
 ```
 
 ```r
-sp2 = savepoint()
-data(Loblolly)
-write_table(Loblolly)
+sp2 = savepoint(); data(Loblolly); write_table(Loblolly); list_tables()
 ```
 
 ```
 ## CREATE TABLE
-```
-
-```r
-list_tables()
 ```
 
 ```
@@ -254,15 +233,11 @@ list_tables()
 ```
 
 ```r
-rollback(sp2)
+rollback(sp2); list_tables()
 ```
 
 ```
 ## ROLLBACK
-```
-
-```r
-list_tables()
 ```
 
 ```
@@ -270,15 +245,11 @@ list_tables()
 ```
 
 ```r
-rollback(sp1)
+rollback(sp1); list_tables()
 ```
 
 ```
 ## ROLLBACK
-```
-
-```r
-list_tables()
 ```
 
 ```
@@ -313,7 +284,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2015-05-21 14:50:12-05
+## 1  mtcars  2015-05-21 15:03:56-05
 ```
 
 ```r
