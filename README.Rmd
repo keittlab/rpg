@@ -20,10 +20,8 @@ devtools::install_github("thk686/rpg")     # Development
 
 ```{r}
 library(rpg)
-createdb("exampledb")
-connect("exampledb")
-data(mtcars)
-write_table(mtcars)
+createdb("exampledb"); connect("exampledb")
+data(mtcars); write_table(mtcars)
 fetch("select * from mtcars where mpg > 30")
 ```
 
@@ -33,18 +31,12 @@ Even though the database connection is implicit, you are not restricted to a sin
 
 ```{r}
 push_conn()
-createdb("exampledb2")
-connect("exampledb2")
-data(iris)
-write_table(iris)
-list_tables()
-swap_conn()
-list_tables()
+createdb("exampledb2"); connect("exampledb2")
+data(iris); write_table(iris); list_tables()
+swap_conn(); list_tables()
 show_conn_stack()
-swap_conn()
-describe_table("iris")
-pop_conn()
-get_conn_info("dbname")
+swap_conn(); describe_table("iris")
+pop_conn(); get_conn_info("dbname")
 dropdb("exampledb2")
 ```
 
@@ -87,16 +79,10 @@ finish_async()
 A PostgreSQL-specific feature are save points for nested transactions. ```rpg``` provides a convenient wrapper.
 
 ```{r}
-sp1 = savepoint()
-write_table(iris)
-sp2 = savepoint()
-data(Loblolly)
-write_table(Loblolly)
-list_tables()
-rollback(sp2)
-list_tables()
-rollback(sp1)
-list_tables()
+sp1 = savepoint(); write_table(iris)
+sp2 = savepoint(); data(Loblolly); write_table(Loblolly); list_tables()
+rollback(sp2); list_tables()
+rollback(sp1); list_tables()
 ```
 
 ### Object serialization and storage
