@@ -77,8 +77,7 @@ NULL
 #' 
 #' @export connect
 #' @rdname connection
-connect = function(dbname, ...)
-{
+connect = function(dbname, ...){
   if (missing(dbname))
     values = list(...)
   else
@@ -91,15 +90,24 @@ connect = function(dbname, ...)
   status = connect_(keywords, as.character(values))
   if (status == "CONNECTION_BAD" &&
       get_conn_info("password.needed") &&
-       interactive())
-  {
+       interactive()){
      pw = get_pw()
      keywords = c(keywords, "password")
      values = c(values, pw)
-     return(connect_(keywords, as.character(values)))
-  }
+     return(connect_(keywords, as.character(values)))}
+  if (status == "CONNECTION_OK") set_prompt()
   return(status)
 }
+
+#' @details \code{disconnect} will free any query results as well
+#' as clean up the connection data. It is called in the pakcage
+#' \code{\link{.Last.lib}} function when exiting \code{R}.
+#' 
+#' @export disconnect
+#' @rdname connection
+disconnect = function(){
+  disconnect_()
+  set_prompt()}
 
 #' @details \code{fetch} returns the result of a query as a data frame. If
 #' \code{sql} is \code{NULL} or empty, then an attempt will be made to retrieve

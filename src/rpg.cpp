@@ -52,14 +52,8 @@ CharacterVector ping(const char* opts = "")
   return ping_status_string(opts);
 }
 
-//' @details \code{disconnect} will free any query results as well
-//' as clean up the connection data. It is called in the pakcage
-//' \code{\link{.Last.lib}} function when exiting \code{R}.
-//' 
-//' @export disconnect
-//' @rdname connection
 // [[Rcpp::export]]
-void disconnect()
+void disconnect_()
 {
   clear_conn();
 }

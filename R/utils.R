@@ -1,12 +1,20 @@
 .onLoad = function(libname, pkgname)
 {
   connect()
+  set_prompt()
 }
 
 .onUnload = function(libpath)
 {
   clean_up_all()
+  set_prompt()
 }
+
+set_prompt = function(){
+  if(get_conn_info("status.ok"))
+    options(prompt = paste0("db:", get_conn_info("dbname"), "> "))
+  else
+    options(prompt = "> ")}
 
 #' Convert R objects to strings
 #' 
