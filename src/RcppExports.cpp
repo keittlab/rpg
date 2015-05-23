@@ -28,12 +28,12 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// disconnect
-void disconnect();
-RcppExport SEXP rpg_disconnect() {
+// disconnect_
+void disconnect_();
+RcppExport SEXP rpg_disconnect_() {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
-    disconnect();
+    disconnect_();
     return R_NilValue;
 END_RCPP
 }

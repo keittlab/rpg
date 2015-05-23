@@ -45,14 +45,8 @@ ping <- function(opts = "") {
     .Call('rpg_ping', PACKAGE = 'rpg', opts)
 }
 
-#' @details \code{disconnect} will free any query results as well
-#' as clean up the connection data. It is called in the pakcage
-#' \code{\link{.Last.lib}} function when exiting \code{R}.
-#' 
-#' @export disconnect
-#' @rdname connection
-disconnect <- function() {
-    invisible(.Call('rpg_disconnect', PACKAGE = 'rpg'))
+disconnect_ <- function() {
+    invisible(.Call('rpg_disconnect_', PACKAGE = 'rpg'))
 }
 
 clean_up_all <- function() {

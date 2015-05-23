@@ -11,7 +11,9 @@ install.packages(rpg)                      # Released
 devtools::install_github("thk686/rpg")     # Development
 ```
 
-### Connection example
+### Queries
+
+```rpg``` supports parameterized queries and prepared statements.
 
 
 ```r
@@ -29,7 +31,38 @@ data(mtcars); write_table(mtcars)
 ```
 
 ```r
-fetch("select * from mtcars where mpg > 30")
+fetch("select * from mtcars where mpg > $1", 30)
+```
+
+```
+##    mpg cyl disp  hp drat    wt  qsec vs am gear carb
+## 1 32.4   4 78.7  66 4.08 2.200 19.47  1  1    4    1
+## 2 30.4   4 75.7  52 4.93 1.615 18.52  1  1    4    2
+## 3 33.9   4 71.1  65 4.22 1.835 19.90  1  1    4    1
+## 4 30.4   4 95.1 113 3.77 1.513 16.90  1  1    5    2
+```
+
+```r
+prepared = prepare("select * from mtcars where mpg > $1")
+prepared(25); fetch(); prepared(30); fetch()
+```
+
+```
+## SELECT 6
+```
+
+```
+##    mpg cyl  disp  hp drat    wt  qsec vs am gear carb
+## 1 32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
+## 2 30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
+## 3 33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
+## 4 27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
+## 5 26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
+## 6 30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
+```
+
+```
+## SELECT 4
 ```
 
 ```
@@ -284,7 +317,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2015-05-21 15:03:56-05
+## 1  mtcars  2015-05-23 15:16:21-05
 ```
 
 ```r
