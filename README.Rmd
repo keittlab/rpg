@@ -16,13 +16,17 @@ install.packages(rpg)                      # Released
 devtools::install_github("thk686/rpg")     # Development
 ```
 
-### Connection example
+### Queries
+
+```rpg``` supports parameterized queries and prepared statements.
 
 ```{r}
 library(rpg)
 createdb("exampledb"); connect("exampledb")
 data(mtcars); write_table(mtcars)
-fetch("select * from mtcars where mpg > 30")
+fetch("select * from mtcars where mpg > $1", 30)
+prepared = prepare("select * from mtcars where mpg > $1")
+prepared(25); fetch(); prepared(30); fetch()
 ```
 
 ### Connection stack
