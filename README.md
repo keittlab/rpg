@@ -2,6 +2,8 @@
 Timothy H. Keitt  
 05/15/2015  
 
+[![Build Status](https://travis-ci.org/thk686/rpg.svg?branch=master)](https://travis-ci.org/thk686/rpg)
+
 This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface.
 
 ### Installation
@@ -217,8 +219,6 @@ repeat {
 ## calling cancel...
 ## busy... 
 ## calling cancel...
-## busy... 
-## calling cancel...
 ## busy...
 ```
 
@@ -317,7 +317,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2015-05-23 15:16:21-05
+## 1  mtcars  2015-05-24 21:36:17-05
 ```
 
 ```r
