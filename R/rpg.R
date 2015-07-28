@@ -82,12 +82,13 @@ connect = function(dbname, ...){
     values = list(...)
   else
     values = list(dbname = dbname, ...)
-  if (length(values) == 0)
-    return(connect_(character(0), character(0)))
-  keywords = names(values)
-  if (is.null(keywords) || "" %in% keywords)
-    stop("all arguments must be named")
-  status = connect_(keywords, as.character(values))
+  status = if (length(values) == 0){
+    connect_(character(0), character(0))}
+  else{
+    keywords = names(values)
+    if (is.null(keywords) || "" %in% keywords)
+      stop("all arguments must be named")
+    connect_(keywords, as.character(values))}
   if (status == "CONNECTION_BAD" &&
       get_conn_info("password.needed") &&
        interactive()){
@@ -866,7 +867,7 @@ copy_from = function(what, psql_opts = "")
   if (grepl("select", tolower(what))) what = paste("(", what, ")")
   sql = paste("COPY", what, "TO stdout CSV NULL \'NA\' HEADER")
   con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
-  read.csv(con, header = TRUE, as.is = TRUE)
+  utils::read.csv(con, header = TRUE, as.is = TRUE)
 }
 
 #' @param x a data frame
@@ -898,7 +899,7 @@ copy_to = function(x, tablename,
   sql = paste("SET client_min_messages TO warning;", sql)
   psql_opts = proc_psql_opts(psql_opts)
   con = pipe(paste(psql_path, psql_opts, "-c", dquote_esc(sql)))
-  write.csv(x, con, row.names = FALSE)
+  utils::write.csv(x, con, row.names = FALSE)
 }
 
 #' Transaction support
