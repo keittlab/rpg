@@ -1,7 +1,7 @@
 Package: rpg
 Type: Package
 Title: Easy Interface to Advanced PostgreSQL Features
-Version: 1.4
+Version: 1.5
 Date: 2015-02-21
 Author: Timothy H. Keitt
 Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
