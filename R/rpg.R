@@ -95,7 +95,7 @@ connect = function(dbname, ...){
      pw = get_pw()
      keywords = c(keywords, "password")
      values = c(values, pw)
-     return(connect_(keywords, as.character(values)))}
+     status = connect_(keywords, as.character(values))}
   if (status == "CONNECTION_OK") set_prompt()
   return(status)
 }
