@@ -4,15 +4,19 @@
 \alias{create_index}
 \title{Create an index}
 \usage{
-create_index(tablename, columnname, unique = FALSE, concurrently = FALSE,
-  if_not_exists = FALSE, using = NULL, schemaname = NULL)
+create_index(tablename, columnname, unique = FALSE, using = NULL,
+  schemaname = NULL)
 }
 \arguments{
 \item{tablename}{the name of the table}
 
-\item{schemaname}{specifically in this schema}
+\item{columnname}{the name of the column}
 
-\item{columname}{the name of the column}
+\item{unique}{if true, create a unique index}
+
+\item{using}{the index method}
+
+\item{schemaname}{specifically in this schema}
 }
 \description{
 Create and index on an existing table column
