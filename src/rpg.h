@@ -17,6 +17,8 @@ static PGresult* res = NULL;
 static const char* tracefname = NULL;
 static std::FILE* tracef = NULL;
 
+bool echo = false;
+
 static std::vector<PGconn*> conn_stack;
 
 typedef std::map<Oid, SEXP> format_map_t;

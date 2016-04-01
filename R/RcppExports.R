@@ -549,3 +549,9 @@ register_return_formatter <- function(pgoid, f) {
     invisible(.Call('rpg_register_return_formatter', PACKAGE = 'rpg', pgoid, f))
 }
 
+#' @rdname misc
+#' @export
+toggle_echo <- function() {
+    invisible(.Call('rpg_toggle_echo', PACKAGE = 'rpg'))
+}
+

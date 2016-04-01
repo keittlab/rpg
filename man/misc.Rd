@@ -10,6 +10,7 @@
 \alias{libpq_version}
 \alias{set_encoding}
 \alias{set_error_verbosity}
+\alias{toggle_echo}
 \title{Miscelaneous functions}
 \usage{
 libpq_version()
@@ -21,6 +22,8 @@ get_encoding()
 set_encoding(encoding)
 
 set_error_verbosity(verbosity)
+
+toggle_echo()
 
 enable_postgis(schemaname = "postgis")
 

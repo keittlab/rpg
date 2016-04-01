@@ -202,6 +202,7 @@ CharacterVector query(const char* sql = "", SEXP pars = R_NilValue)
     set_res(PQexec(conn, sql));
   else
     exec_params(sql, pars);
+  if (echo) Rcout << sql << std::endl;
   return result_status();
 }
 

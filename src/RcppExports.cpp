@@ -400,3 +400,12 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// toggle_echo
+void toggle_echo();
+RcppExport SEXP rpg_toggle_echo() {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    toggle_echo();
+    return R_NilValue;
+END_RCPP
+}
