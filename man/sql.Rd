@@ -4,17 +4,28 @@
 \alias{create_index}
 \title{Create an index}
 \usage{
-create_index(tablename, columnname, unique = FALSE, using = NULL,
-  schemaname = NULL)
+create_index(columnname, tablename, indexname = NULL, unique = FALSE,
+  using = NULL, collate = NULL, descending = FALSE, tablespace = NULL,
+  where = NULL, schemaname = NULL)
 }
 \arguments{
+\item{columnname}{the name of the column}
+
 \item{tablename}{the name of the table}
 
-\item{columnname}{the name of the column}
+\item{indexname}{optional index name to use}
 
 \item{unique}{if true, create a unique index}
 
 \item{using}{the index method}
+
+\item{collate}{set collation}
+
+\item{descending}{if true, sort descending}
+
+\item{tablespace}{create in this tablespace}
+
+\item{where}{restrict to rows matching predicate}
 
 \item{schemaname}{specifically in this schema}
 }
@@ -22,6 +33,9 @@ create_index(tablename, columnname, unique = FALSE, using = NULL,
 Create and index on an existing table column
 }
 \details{
-This function is not yet finished
+Build an index on a column.
+}
+\author{
+Timothy H. Keitt
 }
 
