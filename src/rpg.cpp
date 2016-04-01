@@ -837,3 +837,11 @@ void register_return_formatter(int pgoid, Function f)
 {
   format_map[static_cast<Oid>(pgoid)] = wrap(f);
 }
+
+//' @rdname misc
+//' @export
+// [[Rcpp::export]]
+void toggle_echo()
+{
+  echo = !echo;
+}
