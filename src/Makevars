@@ -1,5 +1,5 @@
 PKG_CPPFLAGS=-I/usr/include/postgresql
-PKG_LIBS=-L/usr/lib -lpq
+PKG_LIBS=-L/usr/lib/x86_64-linux-gnu -lpq
 R_OS_TYPE=
 
 
