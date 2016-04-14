@@ -12,7 +12,7 @@ Sys.setenv(CC = system("R CMD config CC", TRUE),
            CPP = system("R CMD config CPP", TRUE),
            CPPFLAGS = system("R CMD config CPPFLAGS", TRUE),
            LDFLAGS = system("R CMD config LDFLAGS", TRUE))
-system("./configure")
+if (!file.exists("GNUmakefile")) system("./configure")
 setwd("src/interfaces/libpq")
-system("make")
+if (!file.exists("libpq.a")) system("make")
 
