@@ -11,6 +11,6 @@ for f in $FILES
 do
   if [ -e $f ]
   then
-    rm -rf $f
+    rm -f $f
   fi
 done

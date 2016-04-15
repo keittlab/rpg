@@ -6,11 +6,11 @@ FILES="\
   src/libpq-fe.h \
   src/pg_config_ext.h \
   src/postgres_ext.h \
-  src/Makevars"
+  src/Makevars.win"
 for f in $FILES
 do
   if [ -e $f ]
   then
-    rm -rf $f
+    rm -f $f
   fi
 done
