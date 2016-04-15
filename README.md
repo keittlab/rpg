@@ -4,7 +4,7 @@ Timothy H. Keitt
 
 [![Travis-CI Build Status](https://travis-ci.org/thk686/rpg.svg?branch=master)](https://travis-ci.org/thk686/rpg) [![CRAN Version](http://www.r-pkg.org/badges/version/rpg)](http://www.r-pkg.org/badges/version/rpg) [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/rpg)](http://cran.rstudio.com/web/packages/rpg/index.html)
 
-This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference betwee ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface.
+This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference between ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface.
 
 ### Installation
 
@@ -171,7 +171,7 @@ This usage is compatible with ```%dopar%```; you can access these cursors from m
 
 ### Asynchronous queries
 
-You can submit asynchronous queries with ```rpg```. When combined with the connnection stack, this allows you to launch queries, push the connection, make a new connection while the first query is completing. By swapping the first connection back to the active state, you can then check for completion or try to cancel the transaction.
+You can submit asynchronous queries with ```rpg```. When combined with the connection stack, this allows you to launch queries, push the connection, make a new connection while the first query is completing. By swapping the first connection back to the active state, you can then check for completion or try to cancel the transaction.
 
 
 ```r
@@ -199,8 +199,6 @@ repeat {
 ```
 ## busy... 
 ## busy... 
-## busy... 
-## calling cancel...
 ## busy... 
 ## calling cancel...
 ## busy... 
@@ -319,7 +317,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2015-09-24 16:18:34-05
+## 1  mtcars  2016-04-15 14:08:00-05
 ```
 
 ```r
@@ -331,6 +329,11 @@ ls()
 ## [1] "mtcars"
 ```
 
+```r
+disconnect()
+dropdb("exampledb")
+```
+
 ### Additional features
 
 1. Intelligent handling of passwords: ```rpg``` will query for the password only if it is needed. You can set a default password.
@@ -339,8 +342,7 @@ ls()
 1. Easy tracing of data flowing between client and server.
 1. High bandwidth options for reading/writing bulk data from/to the database.
 
+### News
 
-```r
-disconnect()
-dropdb("exampledb")
-```
+4/15/16 -- I ripped out and replaced the build setup. I was using the autoconf bits and libpq files distributed with RPostgreSQL (a very good package you should check out). However it had a few peculiarities, like never using the included libpq on Linux. Also, I could not check the libpq version number. So now the package will check your postgres install using the pg_config command and if its not found or the version is not new enough, then libpq is downloaded and built.
+
