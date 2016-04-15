@@ -15,7 +15,7 @@ Sys.setenv(CC = system("R CMD config CC", TRUE),
            LDFLAGS = system("R CMD config LDFLAGS", TRUE))
 if (!file.exists("GNUmakefile")) system("./configure")
 setwd("src/interfaces/libpq")
-if (!file.exists("libpq.a")) system("make")
+if (!file.exists("libpq.a")) system("make -j 2")
 pkg_src = file.path(start_dir, "src")
 file.copy(c("libpq.a", "libpq-fe.h"), pkg_src)
 setwd("../../include")
