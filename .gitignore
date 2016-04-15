@@ -6,6 +6,9 @@ src/*.o
 src/*.so
 src/*.dll
 src/Makevars
+src/libpq-fe.h
+src/pg_config_ext.h
+src/postgres_ext.h
 .DS_Store
 README.html
 .svn

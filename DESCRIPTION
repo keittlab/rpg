@@ -30,3 +30,4 @@ Note: The files configure.in, cleanup, Makevars.in and Makevars.win are based
     protions remains with the original authors. The files in src/libpq/ are
     part of PostgreSQL. Please refer to http://www.postgresql.org/ for their
     copyright and license.
+RoxygenNote: 5.0.1
