@@ -1,11 +1,11 @@
 #!/bin/sh
 RSCRIPT="${R_HOME}/bin${R_ARCH_BIN}/Rscript --vanilla"
-PG_VERSION=`${RSCRIPT} ./get-pgversion.R`
+PG_VERSION=`$RSCRIPT ./src/get-pgversion.R`
 if [ "$PG_VERSION" -gt "8" ]
 then
-  echo "PKG_LIBS=-L`pg_config --libdir` -lpq" > src/Makevars
-  echo "PKG_CPPFLAGS=-I`pg_config --includedir`" >> src/Makevars
+  echo "PKG_LIBS=-L`pg_config --libdir` -lpq" > ./src/Makevars
+  echo "PKG_CPPFLAGS=-I`pg_config --includedir`" >> ./src/Makevars
 else
-  $RSCRIPT ./get-libpq.R
-  echo "PKG_LIBS=-L. -lpq" > src/Makevars
+  $RSCRIPT ./src/get-libpq.R
+  echo "PKG_LIBS=-L. -lpq" > ./src/Makevars
 fi
