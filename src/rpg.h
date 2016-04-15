@@ -1,7 +1,7 @@
 #ifndef __RPG_H__
 #define __RPG_H__
 
-#include <libpq-fe.h>
+#include "libpq-fe.h"
 
 #include <Rcpp.h>
 using namespace Rcpp;

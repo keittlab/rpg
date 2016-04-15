@@ -1,4 +1,16 @@
-rm -f config.log config.status
-rm -rf autom4te.cache
-rm -rf src/*.o src/*.so src/Makevars
-rm -rf .RData
+#!/bin/sh
+FILES="\
+  ./.RData
+  ./.Rhistory
+  src/libpq.a \
+  src/libpq-fe.h \
+  src/pg_config_ext.h \
+  src/postgres_ext.h \
+  src/Makevars"
+for f in $FILES
+do
+  if [ -e $f ]
+  then
+    rm -rf $f
+  fi
+done
