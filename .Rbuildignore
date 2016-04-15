@@ -2,5 +2,3 @@
 ^\.Rproj\.user$
 ^README\.*
 ^\.travis\.yml$
-^get-libpq\.R
-^get-pgversion\.R
