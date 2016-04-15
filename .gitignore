@@ -1,19 +1,16 @@
 .Rproj.user
 .Rhistory
 .RData
+src/*.a
 src/*.o
 src/*.so
 src/*.dll
 src/Makevars
 .DS_Store
 README.html
-autom4te.cache
 .svn
 */.svn
-config.log
-config.status
 *.Rproj
-pg_config*.h
 
 
 
