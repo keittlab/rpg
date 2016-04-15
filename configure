@@ -1,0 +1,10 @@
+#!/bin/sh
+PG_VERSION=`Rscript --vanilla ./get-pgversion.R`
+if [ "$PG_VERSION" -gt "8" ]
+then
+  echo "PKG_LIBS=-L`pg_config --libdir` -lpq" > src/Makevars
+  echo "PKG_CPPFLAGS=-I`pg_config --includedir`" >> src/Makevars
+else
+  ${R_HOME}/bin${R_ARCH_BIN}/Rscript --vanilla ./get-libpq.R
+  echo "PKG_LIBS=-L. -lpq" > src/Makevars
+fi
