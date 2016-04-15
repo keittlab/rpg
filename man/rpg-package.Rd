@@ -14,8 +14,8 @@ provided, as are function to retieve detailed session metadata.
 \tabular{ll}{
 Package: \tab rpg\cr
 Type: \tab Package\cr
-Version: \tab 1.4\cr
-Date: \tab 2015-2-21\cr
+Version: \tab 1.5\cr
+Date: \tab 2016-4-15\cr
 License: \tab GPL \cr
 }
 The main functions are \code{connect}, which establishes a connection,
