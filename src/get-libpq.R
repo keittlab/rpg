@@ -3,7 +3,7 @@ temp_dir = tempdir()
 setwd(temp_dir)
 version = "9.5.2"
 base_name = paste0("postgresql-", version)
-file_name = paste0(base_name, ".tar.bz2")
+file_name = paste0(base_name, ".tar.gz")
 the_url = paste0("https://ftp.postgresql.org/pub/source/v", version, "/", file_name)
 if (!file.exists(file_name)) download.file(the_url, file_name)
 if (!dir.exists(base_name)) untar(file_name)
