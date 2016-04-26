@@ -261,15 +261,4 @@ check_stow = function(tablename, schemaname)
 }
 
 get_pw = function()
-{
-  # This is from code floating around the internet
-  cat("Enter your password in the dialog box\n")
-  tt = tcltk::tktoplevel()
-  pass = tcltk::tclVar()
-  tcltk::tkpack(tcltk::tklabel(tt, text = 'Password:'))
-  tcltk::tkpack(tcltk::tkentry(tt, textvariable = pass, show = '*'))
-  tcltk::tkpack(tcltk::tkbutton(tt, text = "Done",
-                                command = function() tcltk::tkdestroy(tt)))
-  tcltk::tkwait.window(tt)
-  tcltk::tclvalue(pass)
-}
+  getPass::getPass("Enter password:")
