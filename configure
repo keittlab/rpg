@@ -7,5 +7,10 @@ then
   echo "PKG_CPPFLAGS=-I`pg_config --includedir`" >> ./src/Makevars
 else
   $RSCRIPT ./src/get-libpq.R
+  if [ ! -e "./src/libpq.a" ]
+  then
+    echo "Failed to build libpq"
+    exit
+  fi
   echo "PKG_LIBS=-L. -lpq" > ./src/Makevars
 fi
