@@ -8,8 +8,7 @@ Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
 Description: Allows ad hoc queries and reading and
     writing data frames to and from a database.
 License: GPL (>=2)
-URL: http://www.postgresql.org/, http://github.com/thk686/rpg,
-    http://r-forge.r-project.org/projects/rpg/, http://www.keittlab.org/
+URL: http://github.com/thk686/rpg, http://www.keittlab.org/
 Imports:
     Rcpp (>= 0.11.1),
     uuid (>= 0.1-1),
