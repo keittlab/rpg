@@ -721,6 +721,7 @@ prepare = function(sql)
 }
 
 #' @param what the fields to return or all if NULL
+#' @param hide_password if true, do not reveal password used
 #' @details \code{get_conn_info} returns a list containing
 #' information about the current connection. For
 #' readability, it will print as though it is a matrix. If
@@ -732,9 +733,11 @@ prepare = function(sql)
 #' @return get_conn_info: a list of values
 #' @export get_conn_info
 #' @rdname connection-utils
-get_conn_info = function(what = NULL)
+get_conn_info = function(what = NULL, hide_password = TRUE)
 {
   res = get_conn_info_()
+  if (hide_password && is.null(what))
+    res$password.used = gsub(".", "*", res$password.used)
   if (is.null(what)) return(res)
   if (length(what) == 1) return(res[[what]])
   return(res[what])
@@ -1171,39 +1174,14 @@ enable_extension = function(extension, schemaname = extension)
 {
   sp = savepoint()
   on.exit(rollback(sp))
-  execute("CREATE SCHEMA", schemaname)
-  execute("SET search_path TO", schemaname)
+  opath = get_path()
+  create_schema(schemaname)
+  set_path(schemaname)
   execute("CREATE EXTENSION", extension)
-  execute("SET search_path TO default")
-  dpath = fetch("SHOW search_path")[[1]]
-  if (! grepl(schemaname, strsplit(dpath, ", ")))
-    execute("ALTER DATABASE", get_conn_info("dbname"),
-            "SET search_path TO", dpath, ", ", schemaname)
+  if (!path_contains(schemaname, default = TRUE))
+    append_path(schemaname, default = TRUE)
+  set_path(opath)
   on.exit(commit(sp))
-}
-
-#' @param name name of the database
-#' @param opts a list of command options
-#' @param description a description string
-#' 
-#' @rdname misc
-#' @export
-createdb = function(name, opts = "", description = "")
-{
-  command_path = Sys.which("createdb")
-  if (!nzchar(command_path)) stop("createdb not found")
-  command = paste(command_path, opts, name, description)
-  system(command)
-}
-
-#' @rdname misc
-#' @export
-dropdb = function(name, opts = "")
-{
-  command_path = Sys.which("dropdb")
-  if (!nzchar(command_path)) stop("dropb not found")
-  command = paste(command_path, opts, name)
-  system(command)
 }
 
 #' @param name the service name
@@ -1220,7 +1198,7 @@ dropdb = function(name, opts = "")
 #' @export
 make_service = function(name)
 {
-  ci = get_conn_info()
+  ci = get_conn_info(hide_password = FALSE)
   fp = file.path(Sys.getenv("HOME"), ".pg_service.conf")
   cat(paste0("[", name, "]\n"), file = fp, append = TRUE)
   with(ci, {
