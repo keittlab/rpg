@@ -52,6 +52,9 @@ add_primary_key = function(tablename,
   execute("ALTER TABLE", tableschema, "ADD PRIMARY KEY (", columnname, ")")
   on.exit(commit(sp))}
 
+#' @param foreign_table the foreign table name
+#' @param foreign_column a key column (defaults to primary key)
+#' @param foreign_schema the schema of the foreign table
 #' @export
 #' @rdname sql
 add_foreign_key = function(tablename,
@@ -81,14 +84,20 @@ create_schema = function(schemaname){
 #' 
 #' @param ... path names
 #' @param default if true, manipulate database default
+#' @param no_dup do not add if path exists
 #' 
 #' @export
 #' @rdname path
 set_path = function(..., default = FALSE)
+{
+  sp = savepoint()
+  on.exit(rollback(sp))
   if (default)
     execute("ALTER DATABASE", get_conn_info("dbname"),
             "SET search_path TO", paste(..., sep = ", ")) else
     execute("SET search_path TO", paste(..., sep = ", "))
+  on.exit(commit(sp))
+}
 
 #' @export
 #' @rdname path
@@ -104,15 +113,32 @@ get_path = function(default = FALSE)
 
 #' @export
 #' @rdname path
-append_path = function(..., default = FALSE)
-  set_path(get_path(default), ..., default = default)
+append_path = function(..., default = FALSE, no_dup = TRUE)
+  if (no_dup && any(path_contains(..., default = default)))
+    warning("Path not updated") else
+      set_path(get_path(default = default), ..., default = default)
 
 #' @export
 #' @rdname path
-prepend_path = function(..., default = FALSE)
-  set_path(..., get_path(default), default = default)
+prepend_path = function(..., default = FALSE, no_dup = TRUE)
+  if (no_dup && any(path_contains(..., default = default)))
+    warning("Path not updated") else
+      set_path(..., get_path(default = default), default = default)
 
 #' @export
 #' @rdname path
-path_contains = function(x, default = FALSE)
-  grepl(x, strsplit(get_path(default), ", ", fixed = TRUE))
+path_contains = function(..., default = FALSE)
+  sapply(list(...), grepl, x = strsplit(get_path(default = default), ", ", fixed = TRUE))
+
+#' @param columntype the column SQL type
+#' @rdname sql
+#' @export
+add_column = function(columnname, columntype, tablename, schemaname = NULL)
+{
+  sp = savepoint()
+  on.exit(rollback(sp))
+  tableschema = format_tablename(tablename, schemaname)
+  status = execute("ALTER TABLE", tableschema, "ADD COLUMN", columnname, columntype)
+  on.exit(commit(sp))
+  return(status)
+}

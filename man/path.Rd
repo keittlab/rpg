@@ -8,18 +8,22 @@
 \alias{set_path}
 \title{PostgreSQL path variable}
 \usage{
-set_path(...)
+set_path(..., default = FALSE)
 
-get_path()
+get_path(default = FALSE)
 
-append_path(...)
+append_path(..., default = FALSE, no_dup = TRUE)
 
-prepend_path(...)
+prepend_path(..., default = FALSE, no_dup = TRUE)
 
-path_contains(x)
+path_contains(..., default = FALSE)
 }
 \arguments{
 \item{...}{path names}
+
+\item{default}{if true, manipulate database default}
+
+\item{no_dup}{do not add if path exists}
 }
 \description{
 Manipulate the PostgreSQL path variable
