@@ -2,10 +2,6 @@
 FILES="\
   ./.RData
   ./.Rhistory
-  src/libpq.a \
-  src/libpq-fe.h \
-  src/pg_config_ext.h \
-  src/postgres_ext.h \
   src/Makevars"
 for f in $FILES
 do

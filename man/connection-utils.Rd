@@ -16,7 +16,7 @@ get_conn_error()
 
 get_conn_defaults(all = FALSE)
 
-get_conn_info(what = NULL)
+get_conn_info(what = NULL, hide_password = TRUE)
 
 set_conn_defaults(...)
 
@@ -30,6 +30,8 @@ reset_conn_defaults()
 \item{all}{if false return only defaults with settings}
 
 \item{what}{the fields to return or all if NULL}
+
+\item{hide_password}{if true, do not reveal password used}
 
 \item{...}{a named list of arguments giving new defaults}
 
