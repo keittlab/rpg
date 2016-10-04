@@ -1,6 +1,9 @@
 #ifndef __RPG_H__
 #define __RPG_H__
 
+#undef Realloc
+#undef Free
+
 #include "libpq-fe.h"
 
 #include <Rcpp.h>
