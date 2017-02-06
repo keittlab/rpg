@@ -6,6 +6,8 @@
 \alias{add_primary_key}
 \alias{create_index}
 \alias{create_schema}
+\alias{createdb}
+\alias{dropdb}
 \alias{sql}
 \title{Create an index}
 \usage{
@@ -21,6 +23,10 @@ add_foreign_key(tablename, columnname, foreign_table, foreign_column = NULL,
 create_schema(schemaname)
 
 add_column(columnname, columntype, tablename, schemaname = NULL)
+
+createdb(name)
+
+dropdb(name, if_exists = TRUE)
 }
 \arguments{
 \item{tablename}{the name of the table}
@@ -50,6 +56,10 @@ add_column(columnname, columntype, tablename, schemaname = NULL)
 \item{foreign_schema}{the schema of the foreign table}
 
 \item{columntype}{the column SQL type}
+
+\item{name}{name of the database}
+
+\item{if_exists}{don't fail on missing database}
 }
 \description{
 Create and index on an existing table column
