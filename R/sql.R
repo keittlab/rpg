@@ -142,3 +142,21 @@ add_column = function(columnname, columntype, tablename, schemaname = NULL)
   on.exit(commit(sp))
   return(status)
 }
+
+#' @param name name of the database
+#' @rdname sql
+#' @export
+createdb = function(name)
+{
+  execute("CREATE DATABASE", name)
+}
+
+#' @param if_exists don't fail on missing database
+#' @rdname sql
+#' @export
+dropdb = function(name, if_exists = TRUE)
+{
+  execute("DROP DATABASE", if (if_exists) "IF EXISTS", name)
+}
+
+
