@@ -263,25 +263,3 @@ check_stow = function(tablename, schemaname)
 get_pw = function()
   getPass::getPass("Enter password:")
 
-#' @param name name of the database
-#' @param opts a list of command options
-#' @param description a description string
-#' 
-#' @rdname misc
-#' @export
-createdb = function(name, opts = "", description = "")
-{
-  command_path = Sys.which("createdb")
-  if (nzchar(command_path)) system(paste(command_path, opts, name, description))
-  else execute("CREATE DATABASE", name)
-}
-
-#' @rdname misc
-#' @export
-dropdb = function(name, opts = "")
-{
-  command_path = Sys.which("dropdb")
-  if (nzchar(command_path)) system(paste(command_path, opts, name))
-  else execute("DROP DATABASE", name)
-}
-
