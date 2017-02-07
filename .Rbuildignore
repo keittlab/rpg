@@ -3,5 +3,7 @@
 ^README\.*
 ^\.travis\.yml$
 ^.*\.a$
-
+^windows$
 ^appveyor\.yml$
+^src/Makevars$
+
