@@ -21,6 +21,13 @@ devtools::install_github("thk686/rpg")     # Development
 ```r
 library(rpg)
 createdb("exampledb"); connect("exampledb")
+```
+
+```
+## CREATE DATABASE
+```
+
+```r
 data(mtcars); write_table(mtcars)
 ```
 
@@ -83,6 +90,17 @@ Even though the database connection is implicit, you are not restricted to a sin
 ```r
 push_conn()
 createdb("exampledb2"); connect("exampledb2")
+```
+
+```
+## No connection... attempting reset... nope... trying default... that worked.
+```
+
+```
+## CREATE DATABASE
+```
+
+```r
 data(iris); write_table(iris); list_tables()
 ```
 
@@ -138,6 +156,10 @@ pop_conn(); get_conn_info("dbname")
 
 ```r
 dropdb("exampledb2")
+```
+
+```
+## DROP DATABASE
 ```
 
 ### Database cursors and foreach
@@ -303,7 +325,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2017-02-06 13:16:12-06
+## 1  mtcars  2017-02-07 16:20:55-06
 ```
 
 ```r
@@ -320,6 +342,14 @@ disconnect()
 dropdb("exampledb")
 ```
 
+```
+## No connection... attempting reset... nope... trying default... that worked.
+```
+
+```
+## DROP DATABASE
+```
+
 ### Additional features
 
 1. Intelligent handling of passwords: ```rpg``` will query for the password only if it is needed. You can set a default password.
@@ -329,6 +359,8 @@ dropdb("exampledb")
 1. High bandwidth options for reading/writing bulk data from/to the database.
 
 ### News
+
+2/7/17 -- Gave up trying to build libpq on the fly and instead borrowed the excellent work done by the [RPostgres](https://github.com/rstats-db/RPostgres) team. RPostgres is looking very promissing for DBI work.
 
 4/15/16 -- I ripped out and replaced the build setup. I was using the autoconf bits and libpq files distributed with RPostgreSQL (a very good package you should check out). However it had a few peculiarities, like never using the included libpq on Linux. Also, I could not check the libpq version number. So now the package will check your postgres install using the pg_config command and if its not found or the version is not new enough, then libpq is downloaded and built.
 

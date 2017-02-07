@@ -117,5 +117,7 @@ dropdb("exampledb")
 
 ### News
 
+2/7/17 -- Gave up trying to build libpq on the fly and instead borrowed the excellent work done by the [RPostgres](https://github.com/rstats-db/RPostgres) team. RPostgres is looking very promissing for DBI work.
+
 4/15/16 -- I ripped out and replaced the build setup. I was using the autoconf bits and libpq files distributed with RPostgreSQL (a very good package you should check out). However it had a few peculiarities, like never using the included libpq on Linux. Also, I could not check the libpq version number. So now the package will check your postgres install using the pg_config command and if its not found or the version is not new enough, then libpq is downloaded and built.
 
