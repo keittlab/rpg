@@ -1,2 +1,2 @@
-PKG_CPPFLAGS=-I/usr/local/Cellar/postgresql/9.5.4_1/include
-PKG_LIBS=-L/usr/local/lib -lpq
+PKG_CPPFLAGS=-I/usr/include/postgresql
+PKG_LIBS=-lpq
