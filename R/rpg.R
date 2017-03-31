@@ -11,7 +11,7 @@
 #' Package: \tab rpg\cr
 #' Type: \tab Package\cr
 #' Version: \tab 1.5\cr
-#' Date: \tab 2016-4-15\cr
+#' Date: \tab 2017-2-8\cr
 #' License: \tab GPL \cr
 #' }
 #' The main functions are \code{connect}, which establishes a connection,
