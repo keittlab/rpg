@@ -27,7 +27,7 @@
 #' @keywords package
 #' @import Rcpp
 #' @import RApiSerialize
-#' @useDynLib rpg
+#' @useDynLib rpg, .registration = TRUE
 NULL
 
 #' PostgreSQL connection
