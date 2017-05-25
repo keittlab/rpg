@@ -8,7 +8,7 @@ if (file.exists("src/libpq.a") &&
 }else{
   temp_dir = tempdir()
   setwd(temp_dir)
-  version = "9.5.2"
+  version = "9.6.2"
   base_name = paste0("postgresql-", version)
   file_name = paste0(base_name, ".tar.gz")
   the_url = paste0("http://ftp.postgresql.org/pub/source/v", version, "/", file_name)
@@ -26,7 +26,8 @@ if (file.exists("src/libpq.a") &&
   pkg_src = file.path(start_dir, "src")
   file.copy(c("libpq.a", "libpq-fe.h"), pkg_src)
   setwd("../../include")
-  file.copy(c("postgres_ext.h", "pg_config_ext.h"), pkg_src)
+  file.copy("postgres_ext.h", pkg_src)
+  file.copy("pg_config_ext.h", pkg_src)
   setwd(start_dir)
   unlink(file.path(temp_dir, base_name), TRUE)
 }
