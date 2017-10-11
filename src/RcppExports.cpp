@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // connect_
 CharacterVector connect_(CharacterVector keywords, CharacterVector values);
-RcppExport SEXP rpg_connect_(SEXP keywordsSEXP, SEXP valuesSEXP) {
+RcppExport SEXP _rpg_connect_(SEXP keywordsSEXP, SEXP valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // ping
 CharacterVector ping(const char* opts);
-RcppExport SEXP rpg_ping(SEXP optsSEXP) {
+RcppExport SEXP _rpg_ping(SEXP optsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // disconnect_
 void disconnect_();
-RcppExport SEXP rpg_disconnect_() {
+RcppExport SEXP _rpg_disconnect_() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     disconnect_();
@@ -39,7 +39,7 @@ END_RCPP
 }
 // clean_up_all
 void clean_up_all();
-RcppExport SEXP rpg_clean_up_all() {
+RcppExport SEXP _rpg_clean_up_all() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     clean_up_all();
@@ -48,7 +48,7 @@ END_RCPP
 }
 // get_conn_error
 CharacterVector get_conn_error();
-RcppExport SEXP rpg_get_conn_error() {
+RcppExport SEXP _rpg_get_conn_error() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -58,7 +58,7 @@ END_RCPP
 }
 // get_conn_info_
 SEXP get_conn_info_();
-RcppExport SEXP rpg_get_conn_info_() {
+RcppExport SEXP _rpg_get_conn_info_() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -68,7 +68,7 @@ END_RCPP
 }
 // result_dim
 IntegerVector result_dim();
-RcppExport SEXP rpg_result_dim() {
+RcppExport SEXP _rpg_result_dim() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -78,7 +78,7 @@ END_RCPP
 }
 // get_tuple_info
 IntegerMatrix get_tuple_info();
-RcppExport SEXP rpg_get_tuple_info() {
+RcppExport SEXP _rpg_get_tuple_info() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // query
 CharacterVector query(const char* sql, SEXP pars);
-RcppExport SEXP rpg_query(SEXP sqlSEXP, SEXP parsSEXP) {
+RcppExport SEXP _rpg_query(SEXP sqlSEXP, SEXP parsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -100,7 +100,7 @@ END_RCPP
 }
 // query_error
 CharacterVector query_error();
-RcppExport SEXP rpg_query_error() {
+RcppExport SEXP _rpg_query_error() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -110,7 +110,7 @@ END_RCPP
 }
 // fetch_matrix
 CharacterMatrix fetch_matrix();
-RcppExport SEXP rpg_fetch_matrix() {
+RcppExport SEXP _rpg_fetch_matrix() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -120,7 +120,7 @@ END_RCPP
 }
 // fetch_dataframe
 List fetch_dataframe();
-RcppExport SEXP rpg_fetch_dataframe() {
+RcppExport SEXP _rpg_fetch_dataframe() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -130,7 +130,7 @@ END_RCPP
 }
 // trace_conn
 void trace_conn(const char* filename, bool append);
-RcppExport SEXP rpg_trace_conn(SEXP filenameSEXP, SEXP appendSEXP) {
+RcppExport SEXP _rpg_trace_conn(SEXP filenameSEXP, SEXP appendSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const char* >::type filename(filenameSEXP);
@@ -141,7 +141,7 @@ END_RCPP
 }
 // untrace_conn
 void untrace_conn(bool remove);
-RcppExport SEXP rpg_untrace_conn(SEXP removeSEXP) {
+RcppExport SEXP _rpg_untrace_conn(SEXP removeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type remove(removeSEXP);
@@ -151,7 +151,7 @@ END_RCPP
 }
 // trace_filename
 const char* trace_filename();
-RcppExport SEXP rpg_trace_filename() {
+RcppExport SEXP _rpg_trace_filename() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,7 +161,7 @@ END_RCPP
 }
 // get_conn_defaults
 List get_conn_defaults(const bool all);
-RcppExport SEXP rpg_get_conn_defaults(SEXP allSEXP) {
+RcppExport SEXP _rpg_get_conn_defaults(SEXP allSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -172,7 +172,7 @@ END_RCPP
 }
 // libpq_version
 int libpq_version();
-RcppExport SEXP rpg_libpq_version() {
+RcppExport SEXP _rpg_libpq_version() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -182,7 +182,7 @@ END_RCPP
 }
 // encrypt_password
 const char* encrypt_password(const char* passwd, const char* user);
-RcppExport SEXP rpg_encrypt_password(SEXP passwdSEXP, SEXP userSEXP) {
+RcppExport SEXP _rpg_encrypt_password(SEXP passwdSEXP, SEXP userSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -194,7 +194,7 @@ END_RCPP
 }
 // get_encoding
 const char* get_encoding();
-RcppExport SEXP rpg_get_encoding() {
+RcppExport SEXP _rpg_get_encoding() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -204,7 +204,7 @@ END_RCPP
 }
 // set_encoding
 bool set_encoding(const char* encoding);
-RcppExport SEXP rpg_set_encoding(SEXP encodingSEXP) {
+RcppExport SEXP _rpg_set_encoding(SEXP encodingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -215,7 +215,7 @@ END_RCPP
 }
 // set_error_verbosity
 void set_error_verbosity(std::string verbosity);
-RcppExport SEXP rpg_set_error_verbosity(SEXP verbositySEXP) {
+RcppExport SEXP _rpg_set_error_verbosity(SEXP verbositySEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type verbosity(verbositySEXP);
@@ -225,7 +225,7 @@ END_RCPP
 }
 // check_transaction
 bool check_transaction();
-RcppExport SEXP rpg_check_transaction() {
+RcppExport SEXP _rpg_check_transaction() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -235,7 +235,7 @@ END_RCPP
 }
 // prepare_
 CharacterVector prepare_(const char* sql, const char* name);
-RcppExport SEXP rpg_prepare_(SEXP sqlSEXP, SEXP nameSEXP) {
+RcppExport SEXP _rpg_prepare_(SEXP sqlSEXP, SEXP nameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -247,7 +247,7 @@ END_RCPP
 }
 // execute_prepared_
 SEXP execute_prepared_(CharacterMatrix pars, const char* name);
-RcppExport SEXP rpg_execute_prepared_(SEXP parsSEXP, SEXP nameSEXP) {
+RcppExport SEXP _rpg_execute_prepared_(SEXP parsSEXP, SEXP nameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -259,7 +259,7 @@ END_RCPP
 }
 // num_prepared_params
 int num_prepared_params(const char* name);
-RcppExport SEXP rpg_num_prepared_params(SEXP nameSEXP) {
+RcppExport SEXP _rpg_num_prepared_params(SEXP nameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -270,7 +270,7 @@ END_RCPP
 }
 // push_conn
 void push_conn();
-RcppExport SEXP rpg_push_conn() {
+RcppExport SEXP _rpg_push_conn() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     push_conn();
@@ -279,7 +279,7 @@ END_RCPP
 }
 // pop_conn
 void pop_conn();
-RcppExport SEXP rpg_pop_conn() {
+RcppExport SEXP _rpg_pop_conn() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     pop_conn();
@@ -288,7 +288,7 @@ END_RCPP
 }
 // swap_conn
 void swap_conn();
-RcppExport SEXP rpg_swap_conn() {
+RcppExport SEXP _rpg_swap_conn() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     swap_conn();
@@ -297,7 +297,7 @@ END_RCPP
 }
 // rotate_stack
 void rotate_stack(const int n);
-RcppExport SEXP rpg_rotate_stack(SEXP nSEXP) {
+RcppExport SEXP _rpg_rotate_stack(SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
@@ -307,7 +307,7 @@ END_RCPP
 }
 // show_conn_stack
 List show_conn_stack();
-RcppExport SEXP rpg_show_conn_stack() {
+RcppExport SEXP _rpg_show_conn_stack() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -317,7 +317,7 @@ END_RCPP
 }
 // async_query
 bool async_query(const char* sql, SEXP pars);
-RcppExport SEXP rpg_async_query(SEXP sqlSEXP, SEXP parsSEXP) {
+RcppExport SEXP _rpg_async_query(SEXP sqlSEXP, SEXP parsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -329,7 +329,7 @@ END_RCPP
 }
 // async_status
 CharacterVector async_status();
-RcppExport SEXP rpg_async_status() {
+RcppExport SEXP _rpg_async_status() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -339,7 +339,7 @@ END_RCPP
 }
 // is_busy
 bool is_busy();
-RcppExport SEXP rpg_is_busy() {
+RcppExport SEXP _rpg_is_busy() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -349,7 +349,7 @@ END_RCPP
 }
 // cancel
 void cancel();
-RcppExport SEXP rpg_cancel() {
+RcppExport SEXP _rpg_cancel() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     cancel();
@@ -358,7 +358,7 @@ END_RCPP
 }
 // finish_async
 void finish_async();
-RcppExport SEXP rpg_finish_async() {
+RcppExport SEXP _rpg_finish_async() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     finish_async();
@@ -367,7 +367,7 @@ END_RCPP
 }
 // exec_param_serialize
 CharacterVector exec_param_serialize(const char* sql, SEXP obj);
-RcppExport SEXP rpg_exec_param_serialize(SEXP sqlSEXP, SEXP objSEXP) {
+RcppExport SEXP _rpg_exec_param_serialize(SEXP sqlSEXP, SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -379,7 +379,7 @@ END_RCPP
 }
 // fetch_stowed
 List fetch_stowed(const char* sql, const char* par);
-RcppExport SEXP rpg_fetch_stowed(SEXP sqlSEXP, SEXP parSEXP) {
+RcppExport SEXP _rpg_fetch_stowed(SEXP sqlSEXP, SEXP parSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -391,7 +391,7 @@ END_RCPP
 }
 // register_return_formatter
 void register_return_formatter(int pgoid, Function f);
-RcppExport SEXP rpg_register_return_formatter(SEXP pgoidSEXP, SEXP fSEXP) {
+RcppExport SEXP _rpg_register_return_formatter(SEXP pgoidSEXP, SEXP fSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type pgoid(pgoidSEXP);
@@ -402,10 +402,58 @@ END_RCPP
 }
 // toggle_echo
 void toggle_echo();
-RcppExport SEXP rpg_toggle_echo() {
+RcppExport SEXP _rpg_toggle_echo() {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     toggle_echo();
     return R_NilValue;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_rpg_connect_", (DL_FUNC) &_rpg_connect_, 2},
+    {"_rpg_ping", (DL_FUNC) &_rpg_ping, 1},
+    {"_rpg_disconnect_", (DL_FUNC) &_rpg_disconnect_, 0},
+    {"_rpg_clean_up_all", (DL_FUNC) &_rpg_clean_up_all, 0},
+    {"_rpg_get_conn_error", (DL_FUNC) &_rpg_get_conn_error, 0},
+    {"_rpg_get_conn_info_", (DL_FUNC) &_rpg_get_conn_info_, 0},
+    {"_rpg_result_dim", (DL_FUNC) &_rpg_result_dim, 0},
+    {"_rpg_get_tuple_info", (DL_FUNC) &_rpg_get_tuple_info, 0},
+    {"_rpg_query", (DL_FUNC) &_rpg_query, 2},
+    {"_rpg_query_error", (DL_FUNC) &_rpg_query_error, 0},
+    {"_rpg_fetch_matrix", (DL_FUNC) &_rpg_fetch_matrix, 0},
+    {"_rpg_fetch_dataframe", (DL_FUNC) &_rpg_fetch_dataframe, 0},
+    {"_rpg_trace_conn", (DL_FUNC) &_rpg_trace_conn, 2},
+    {"_rpg_untrace_conn", (DL_FUNC) &_rpg_untrace_conn, 1},
+    {"_rpg_trace_filename", (DL_FUNC) &_rpg_trace_filename, 0},
+    {"_rpg_get_conn_defaults", (DL_FUNC) &_rpg_get_conn_defaults, 1},
+    {"_rpg_libpq_version", (DL_FUNC) &_rpg_libpq_version, 0},
+    {"_rpg_encrypt_password", (DL_FUNC) &_rpg_encrypt_password, 2},
+    {"_rpg_get_encoding", (DL_FUNC) &_rpg_get_encoding, 0},
+    {"_rpg_set_encoding", (DL_FUNC) &_rpg_set_encoding, 1},
+    {"_rpg_set_error_verbosity", (DL_FUNC) &_rpg_set_error_verbosity, 1},
+    {"_rpg_check_transaction", (DL_FUNC) &_rpg_check_transaction, 0},
+    {"_rpg_prepare_", (DL_FUNC) &_rpg_prepare_, 2},
+    {"_rpg_execute_prepared_", (DL_FUNC) &_rpg_execute_prepared_, 2},
+    {"_rpg_num_prepared_params", (DL_FUNC) &_rpg_num_prepared_params, 1},
+    {"_rpg_push_conn", (DL_FUNC) &_rpg_push_conn, 0},
+    {"_rpg_pop_conn", (DL_FUNC) &_rpg_pop_conn, 0},
+    {"_rpg_swap_conn", (DL_FUNC) &_rpg_swap_conn, 0},
+    {"_rpg_rotate_stack", (DL_FUNC) &_rpg_rotate_stack, 1},
+    {"_rpg_show_conn_stack", (DL_FUNC) &_rpg_show_conn_stack, 0},
+    {"_rpg_async_query", (DL_FUNC) &_rpg_async_query, 2},
+    {"_rpg_async_status", (DL_FUNC) &_rpg_async_status, 0},
+    {"_rpg_is_busy", (DL_FUNC) &_rpg_is_busy, 0},
+    {"_rpg_cancel", (DL_FUNC) &_rpg_cancel, 0},
+    {"_rpg_finish_async", (DL_FUNC) &_rpg_finish_async, 0},
+    {"_rpg_exec_param_serialize", (DL_FUNC) &_rpg_exec_param_serialize, 2},
+    {"_rpg_fetch_stowed", (DL_FUNC) &_rpg_fetch_stowed, 2},
+    {"_rpg_register_return_formatter", (DL_FUNC) &_rpg_register_return_formatter, 2},
+    {"_rpg_toggle_echo", (DL_FUNC) &_rpg_toggle_echo, 0},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_rpg(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

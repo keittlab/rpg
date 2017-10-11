@@ -2,7 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 connect_ <- function(keywords, values) {
-    .Call('rpg_connect_', PACKAGE = 'rpg', keywords, values)
+    .Call(`_rpg_connect_`, keywords, values)
 }
 
 #' Database connection utilities
@@ -42,37 +42,37 @@ connect_ <- function(keywords, values) {
 #' @export ping
 #' @rdname connection-utils
 ping <- function(opts = "") {
-    .Call('rpg_ping', PACKAGE = 'rpg', opts)
+    .Call(`_rpg_ping`, opts)
 }
 
 disconnect_ <- function() {
-    invisible(.Call('rpg_disconnect_', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_disconnect_`))
 }
 
 clean_up_all <- function() {
-    invisible(.Call('rpg_clean_up_all', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_clean_up_all`))
 }
 
 #' @return get_conn_error: an error string
 #' @export get_conn_error
 #' @rdname connection-utils
 get_conn_error <- function() {
-    .Call('rpg_get_conn_error', PACKAGE = 'rpg')
+    .Call(`_rpg_get_conn_error`)
 }
 
 get_conn_info_ <- function() {
-    .Call('rpg_get_conn_info_', PACKAGE = 'rpg')
+    .Call(`_rpg_get_conn_info_`)
 }
 
 #' @return \code{result_dim} returns the number of tuples and fields
 #' @rdname query
 #' @export
 result_dim <- function() {
-    .Call('rpg_result_dim', PACKAGE = 'rpg')
+    .Call(`_rpg_result_dim`)
 }
 
 get_tuple_info <- function() {
-    .Call('rpg_get_tuple_info', PACKAGE = 'rpg')
+    .Call(`_rpg_get_tuple_info`)
 }
 
 #' PostgreSQL query
@@ -120,22 +120,22 @@ get_tuple_info <- function() {
 #' @rdname query
 #' @export query
 query <- function(sql = "", pars = NULL) {
-    .Call('rpg_query', PACKAGE = 'rpg', sql, pars)
+    .Call(`_rpg_query`, sql, pars)
 }
 
 #' @return \code{query_error} returns an error string
 #' @export query_error
 #' @rdname query
 query_error <- function() {
-    .Call('rpg_query_error', PACKAGE = 'rpg')
+    .Call(`_rpg_query_error`)
 }
 
 fetch_matrix <- function() {
-    .Call('rpg_fetch_matrix', PACKAGE = 'rpg')
+    .Call(`_rpg_fetch_matrix`)
 }
 
 fetch_dataframe <- function() {
-    .Call('rpg_fetch_dataframe', PACKAGE = 'rpg')
+    .Call(`_rpg_fetch_dataframe`)
 }
 
 #' PostgeSQL connection tracing
@@ -168,13 +168,13 @@ fetch_dataframe <- function() {
 #' @rdname tracing
 #' @export
 trace_conn <- function(filename = "", append = FALSE) {
-    invisible(.Call('rpg_trace_conn', PACKAGE = 'rpg', filename, append))
+    invisible(.Call(`_rpg_trace_conn`, filename, append))
 }
 
 #' @rdname tracing
 #' @export
 untrace_conn <- function(remove = FALSE) {
-    invisible(.Call('rpg_untrace_conn', PACKAGE = 'rpg', remove))
+    invisible(.Call(`_rpg_untrace_conn`, remove))
 }
 
 #' @return \code{trace_filename}: the name of the file containing
@@ -183,7 +183,7 @@ untrace_conn <- function(remove = FALSE) {
 #' @rdname tracing
 #' @export
 trace_filename <- function() {
-    .Call('rpg_trace_filename', PACKAGE = 'rpg')
+    .Call(`_rpg_trace_filename`)
 }
 
 #' @param all if false return only defaults with settings
@@ -195,7 +195,7 @@ trace_filename <- function() {
 #' @rdname connection-utils
 #' @export
 get_conn_defaults <- function(all = FALSE) {
-    .Call('rpg_get_conn_defaults', PACKAGE = 'rpg', all)
+    .Call(`_rpg_get_conn_defaults`, all)
 }
 
 #' Miscelaneous functions
@@ -228,7 +228,7 @@ get_conn_defaults <- function(all = FALSE) {
 #' @rdname misc
 #' @export
 libpq_version <- function() {
-    .Call('rpg_libpq_version', PACKAGE = 'rpg')
+    .Call(`_rpg_libpq_version`)
 }
 
 #' @param passwd the password
@@ -236,43 +236,43 @@ libpq_version <- function() {
 #' @rdname misc
 #' @export
 encrypt_password <- function(passwd, user) {
-    .Call('rpg_encrypt_password', PACKAGE = 'rpg', passwd, user)
+    .Call(`_rpg_encrypt_password`, passwd, user)
 }
 
 #' @rdname misc
 #' @export
 get_encoding <- function() {
-    .Call('rpg_get_encoding', PACKAGE = 'rpg')
+    .Call(`_rpg_get_encoding`)
 }
 
 #' @param encoding the character encoding
 #' @rdname misc
 #' @export
 set_encoding <- function(encoding) {
-    .Call('rpg_set_encoding', PACKAGE = 'rpg', encoding)
+    .Call(`_rpg_set_encoding`, encoding)
 }
 
 #' @param verbosity one of "terse", "default", "verbose"
 #' @rdname misc
 #' @export
 set_error_verbosity <- function(verbosity) {
-    invisible(.Call('rpg_set_error_verbosity', PACKAGE = 'rpg', verbosity))
+    invisible(.Call(`_rpg_set_error_verbosity`, verbosity))
 }
 
 check_transaction <- function() {
-    .Call('rpg_check_transaction', PACKAGE = 'rpg')
+    .Call(`_rpg_check_transaction`)
 }
 
 prepare_ <- function(sql, name = "") {
-    .Call('rpg_prepare_', PACKAGE = 'rpg', sql, name)
+    .Call(`_rpg_prepare_`, sql, name)
 }
 
 execute_prepared_ <- function(pars, name = "") {
-    .Call('rpg_execute_prepared_', PACKAGE = 'rpg', pars, name)
+    .Call(`_rpg_execute_prepared_`, pars, name)
 }
 
 num_prepared_params <- function(name = "") {
-    .Call('rpg_num_prepared_params', PACKAGE = 'rpg', name)
+    .Call(`_rpg_num_prepared_params`, name)
 }
 
 #' Multiple PostgreSQL connections
@@ -323,7 +323,7 @@ num_prepared_params <- function(name = "") {
 #' @rdname stack
 #' @export
 push_conn <- function() {
-    invisible(.Call('rpg_push_conn', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_push_conn`))
 }
 
 #' @details
@@ -334,7 +334,7 @@ push_conn <- function() {
 #' @rdname stack
 #' @export
 pop_conn <- function() {
-    invisible(.Call('rpg_pop_conn', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_pop_conn`))
 }
 
 #' @details
@@ -345,7 +345,7 @@ pop_conn <- function() {
 #' @rdname stack
 #' @export
 swap_conn <- function() {
-    invisible(.Call('rpg_swap_conn', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_swap_conn`))
 }
 
 #' @param n number of shifts
@@ -355,7 +355,7 @@ swap_conn <- function() {
 #' @rdname stack
 #' @export
 rotate_stack <- function(n = 1L) {
-    invisible(.Call('rpg_rotate_stack', PACKAGE = 'rpg', n))
+    invisible(.Call(`_rpg_rotate_stack`, n))
 }
 
 #' @details
@@ -365,7 +365,7 @@ rotate_stack <- function(n = 1L) {
 #' @rdname stack
 #' @export
 show_conn_stack <- function() {
-    .Call('rpg_show_conn_stack', PACKAGE = 'rpg')
+    .Call(`_rpg_show_conn_stack`)
 }
 
 #' Asynchronous query processing
@@ -494,7 +494,7 @@ show_conn_stack <- function() {
 #' @export
 #' @rdname async
 async_query <- function(sql = "", pars = NULL) {
-    .Call('rpg_async_query', PACKAGE = 'rpg', sql, pars)
+    .Call(`_rpg_async_query`, sql, pars)
 }
 
 #' @details Any pending results will be lost if you call \code{\link{query}},
@@ -506,7 +506,7 @@ async_query <- function(sql = "", pars = NULL) {
 #' @export
 #' @rdname async
 async_status <- function() {
-    .Call('rpg_async_status', PACKAGE = 'rpg')
+    .Call(`_rpg_async_status`)
 }
 
 #' @details \code{is_busy} is a slightly faster shortcut to check whether the
@@ -515,27 +515,27 @@ async_status <- function() {
 #' @export
 #' @rdname async
 is_busy <- function() {
-    .Call('rpg_is_busy', PACKAGE = 'rpg')
+    .Call(`_rpg_is_busy`)
 }
 
 #' @export
 #' @rdname async
 cancel <- function() {
-    invisible(.Call('rpg_cancel', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_cancel`))
 }
 
 #' @export
 #' @rdname async
 finish_async <- function() {
-    invisible(.Call('rpg_finish_async', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_finish_async`))
 }
 
 exec_param_serialize <- function(sql, obj) {
-    .Call('rpg_exec_param_serialize', PACKAGE = 'rpg', sql, obj)
+    .Call(`_rpg_exec_param_serialize`, sql, obj)
 }
 
 fetch_stowed <- function(sql, par) {
-    .Call('rpg_fetch_stowed', PACKAGE = 'rpg', sql, par)
+    .Call(`_rpg_fetch_stowed`, sql, par)
 }
 
 #' @param pgoid the PostgreSQL type Oid
@@ -546,12 +546,12 @@ fetch_stowed <- function(sql, par) {
 #' @rdname format-for-send
 #' @export
 register_return_formatter <- function(pgoid, f) {
-    invisible(.Call('rpg_register_return_formatter', PACKAGE = 'rpg', pgoid, f))
+    invisible(.Call(`_rpg_register_return_formatter`, pgoid, f))
 }
 
 #' @rdname misc
 #' @export
 toggle_echo <- function() {
-    invisible(.Call('rpg_toggle_echo', PACKAGE = 'rpg'))
+    invisible(.Call(`_rpg_toggle_echo`))
 }
 

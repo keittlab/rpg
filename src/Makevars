@@ -1,2 +1,2 @@
-PKG_CPPFLAGS=-I/usr/include/postgresql
-PKG_LIBS=-lpq
+PKG_CPPFLAGS=-I/Applications/Postgres.app/Contents/Versions/9.6/include 
+PKG_LIBS=-L/Applications/Postgres.app/Contents/Versions/9.6/lib -lpq
