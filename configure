@@ -105,7 +105,8 @@ sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" src/Makevars.in > src/
 
 # Generate init.c
 # THK 3/30/17
-${R_HOME}/bin/Rscript src/gen_init_c.R
+# Now not needed
+# ${R_HOME}/bin/Rscript src/gen_init_c.R
 
 # Success
 exit 0
