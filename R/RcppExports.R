@@ -71,6 +71,9 @@ result_dim <- function() {
     .Call(`_rpg_result_dim`)
 }
 
+#' @return \code{get_tuple_info} returns an integer array with tuple information.
+#' @rdname query
+#' @export 
 get_tuple_info <- function() {
     .Call(`_rpg_get_tuple_info`)
 }

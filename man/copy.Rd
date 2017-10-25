@@ -76,10 +76,9 @@ disconnect()
 dropdb("rpgtesting")}
 
 }
-\author{
-Timothy H. Keitt
-}
 \seealso{
 \code{\link{set_default_password}}
 }
-
+\author{
+Timothy H. Keitt
+}

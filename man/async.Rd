@@ -3,9 +3,9 @@
 \name{async_query}
 \alias{async_query}
 \alias{async_status}
+\alias{is_busy}
 \alias{cancel}
 \alias{finish_async}
-\alias{is_busy}
 \title{Asynchronous query processing}
 \usage{
 async_query(sql = "", pars = NULL)
@@ -156,4 +156,3 @@ dropdb("rpgtesting")}
 \author{
 Timothy H. Keitt
 }
-

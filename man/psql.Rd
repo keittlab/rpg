@@ -35,10 +35,9 @@ Unfortunately it is probably impossible to enable GNU readline support
 so for example up-arrow will recall your R commands, not the psql
 commands entered. You can always call psql from a terminal.
 }
-\author{
-Timothy H. Keitt
-}
 \seealso{
 \code{\link{set_default_password}}
 }
-
+\author{
+Timothy H. Keitt
+}

@@ -1,0 +1,2 @@
+PKG_CPPFLAGS=-I/usr/local/Cellar/libpq/9.6.5/include
+PKG_LIBS=-L/usr/local/Cellar/libpq/9.6.5/lib -lpq

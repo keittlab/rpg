@@ -93,10 +93,9 @@ disconnect()
 dropdb("rpgtesting")}
 
 }
-\author{
-Timothy H. Keitt
-}
 \seealso{
 \code{foreach}, \code{\link{rollback}}, \code{\link{query}}
 }
-
+\author{
+Timothy H. Keitt
+}
