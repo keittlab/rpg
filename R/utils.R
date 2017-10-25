@@ -95,7 +95,7 @@ print.message = function(x, terminate = "\n")
 is_non_empty_string = function(x)
 {
   if (is.null(x)) return(FALSE)
-  if (nchar(x) < 1) return(FALSE)
+  if (!any(nzchar(x))) return(FALSE)
   return(TRUE)
 }
 
