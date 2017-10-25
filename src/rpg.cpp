@@ -124,10 +124,14 @@ IntegerVector result_dim()
   return out;
 }
 
+//' @return \code{get_tuple_info} returns an integer array with tuple information.
+//' @rdname query
+//' @export 
 // [[Rcpp::export]]
 IntegerMatrix get_tuple_info()
 {
   int ncol = PQnfields(res);
+  if (ncol == 0) return IntegerMatrix();
   IntegerMatrix out(6, ncol);
   CharacterVector coln(ncol), rown(6);
   for ( int i = 0; i != ncol; ++i )
