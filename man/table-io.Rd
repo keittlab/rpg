@@ -6,7 +6,7 @@
 \title{PostgreSQL data frame IO}
 \usage{
 write_table(x, tablename, pkey = NULL, row_names = NULL,
-  schemaname = NULL, types = NULL, overwrite = FALSE)
+  schemaname = NULL, types = NULL, append = FALSE, overwrite = FALSE)
 
 read_table(tablename, what = "*", limit = NULL, row_names = NULL,
   schemaname = NULL, pkey_to_row_names = FALSE)
@@ -23,6 +23,8 @@ read_table(tablename, what = "*", limit = NULL, row_names = NULL,
 \item{schemaname}{the schema name}
 
 \item{types}{a list of valid PostgreSQL type names}
+
+\item{append}{if true, append rows to existing table}
 
 \item{overwrite}{if true, destroy existing table with the same name}
 

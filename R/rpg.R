@@ -348,6 +348,7 @@ list_databases = function(only.names = TRUE)
 #' @param row_names a column name to write row names
 #' @param schemaname the schema name
 #' @param types a list of valid PostgreSQL type names
+#' @param append if true, append rows to existing table
 #' @param overwrite if true, destroy existing table with the same name
 #' 
 #' @details
