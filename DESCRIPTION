@@ -1,8 +1,8 @@
 Package: rpg
 Type: Package
 Title: Easy Interface to Advanced PostgreSQL Features
-Version: 1.5
-Date: 2017-02-07
+Version: 1.6
+Date: 2017-10-25
 Author: Timothy H. Keitt
 Maintainer: Timothy H. Keitt <tkeitt@gmail.com>
 Description: Allows ad hoc queries and reading and
@@ -19,7 +19,7 @@ Suggests:
     doParallel (>= 1.0.0),
     hflights (>= 0.1)
 LinkingTo: Rcpp, RApiSerialize
-SystemRequirements: libpq (now included with rpg)
+SystemRequirements: libpq
 Depends:
     R (>= 3.0.0)
 NeedsCompilation: yes
