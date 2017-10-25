@@ -426,6 +426,7 @@ write_table = function(x,
                        row_names = NULL,
                        schemaname = NULL,
                        types = NULL,
+                       append = FALSE,
                        overwrite = FALSE)
 {
   if (missing(tablename))
@@ -464,19 +465,20 @@ write_table = function(x,
   sp = savepoint()
   on.exit(rollback(sp))
   if (overwrite) execute("DROP TABLE IF EXISTS", tableid)
-  sql = paste("CREATE TABLE", tableid, "(", types, ")")
-  status = query(sql)
-  if (status == "PGRES_COMMAND_OK")
+  if (overwrite || (!append))
   {
-    sqlpars = paste0("$", 1:ncol(x))
-    sqlpars = as.csv(sqlpars)
-    sql = paste("INSERT INTO", tableid, "(", colnames, ")")
-    sql = paste(sql, "VALUES (", sqlpars, ")")
-    estatus = prepare(sql)(x)
-    if (estatus == "PGRES_FATAL_ERROR") return(estatus)
-    on.exit(commit(sp))
+    sql = paste("CREATE TABLE", tableid, "(", types, ")")
+    status = query(sql)
+    if (status != "PGRES_COMMAND_OK")
+      return(status)
   }
-  return(status)
+  sqlpars = paste0("$", 1:ncol(x))
+  sqlpars = as.csv(sqlpars)
+  sql = paste("INSERT INTO", tableid, "(", colnames, ")")
+  sql = paste(sql, "VALUES (", sqlpars, ")")
+  estatus = prepare(sql)(x)
+  on.exit(commit(sp))
+  return(estatus)
 }
 
 #' @param what a vector of column names
