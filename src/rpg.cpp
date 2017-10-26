@@ -238,8 +238,7 @@ List fetch_dataframe()
 {
   int nrow = PQntuples(res),
       ncol = PQnfields(res);
-  if ( nrow == 0 ||
-       ncol == 0 ) return List();
+  if (ncol == 0) return List();
   List out(ncol);
   CharacterVector names(ncol);
   for ( int col = 0; col < ncol; ++col )
