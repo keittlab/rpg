@@ -1,10 +1,8 @@
-.onLoad = function(libname, pkgname) {}
+.onLoad = function(libname, pkgname) { return(invisible()) }
 
-.onUnload = function(libpath)
-{
-  clean_up_all()
-  set_prompt()
-}
+.onUnload = function(libpath){
+  clean_up_all(); set_prompt()
+  return(invisible())}
 
 set_prompt = function(){
   if(get_conn_info("status.ok"))
