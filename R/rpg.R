@@ -78,6 +78,7 @@ NULL
 #' @export connect
 #' @rdname connection
 connect = function(dbname, ...){
+  on.exit(set_prompt())
   if (missing(dbname))
     values = list(...)
   else
@@ -96,7 +97,6 @@ connect = function(dbname, ...){
      keywords = c(keywords, "password")
      values = c(values, pw)
      status = connect_(keywords, as.character(values))}
-  if (status == "CONNECTION_OK") set_prompt()
   return(status)
 }
 
@@ -107,8 +107,8 @@ connect = function(dbname, ...){
 #' @export disconnect
 #' @rdname connection
 disconnect = function(){
-  disconnect_()
-  set_prompt()}
+  on.exit(set_prompt())
+  disconnect_()}
 
 #' @details \code{fetch} returns the result of a query as a data frame. If
 #' \code{sql} is \code{NULL} or empty, then an attempt will be made to retrieve
