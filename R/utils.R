@@ -1,8 +1,4 @@
-.onLoad = function(libname, pkgname)
-{
-  connect()
-  set_prompt()
-}
+.onLoad = function(libname, pkgname) {}
 
 .onUnload = function(libpath)
 {
