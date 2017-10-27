@@ -5,4 +5,4 @@
  */
 
 /* Define to the name of a signed 64-bit integer type. */
-#define PG_INT64_TYPE long long int
+#define PG_INT64_TYPE __extension__ long long int

@@ -13,7 +13,7 @@ typedef long int int64;
 #endif
 #elif defined(HAVE_LONG_LONG_INT_64)
 #ifndef HAVE_INT64
-typedef long long int int64;
+typedef __extension__ long long int int64;
 #endif
 #else
 /* neither HAVE_LONG_INT_64 nor HAVE_LONG_LONG_INT_64 */

@@ -5,10 +5,10 @@
 /* Define to 1 if `long int' works and is 64 bits. */
 /* #undef HAVE_LONG_INT_64 */
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type `__extension__ long long int'. */
 #define HAVE_LONG_LONG_INT 1
 
-/* Define to 1 if `long long int' works and is 64 bits. */
+/* Define to 1 if `__extension__ long long int' works and is 64 bits. */
 #define HAVE_LONG_LONG_INT_64 1
 
 /* Define to 1 if you want 64-bit integer timestamp and interval support.

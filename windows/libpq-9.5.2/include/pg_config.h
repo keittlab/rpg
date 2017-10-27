@@ -25,7 +25,7 @@
 /* The normal alignment of `long', in bytes. */
 #define ALIGNOF_LONG 4
 
-/* The normal alignment of `long long int', in bytes. */
+/* The normal alignment of `__extension__ long long int', in bytes. */
 #define ALIGNOF_LONG_LONG_INT 8
 
 /* The normal alignment of `short', in bytes. */
@@ -322,7 +322,7 @@
 /* Define to 1 if you have the `z' library (-lz). */
 #define HAVE_LIBZ 1
 
-/* Define to 1 if constants of type 'long long int' should have the suffix LL.
+/* Define to 1 if constants of type '__extension__ long long int' should have the suffix LL.
    */
 #define HAVE_LL_CONSTANTS 1
 
@@ -332,10 +332,10 @@
 /* Define to 1 if `long int' works and is 64 bits. */
 /* #undef HAVE_LONG_INT_64 */
 
-/* Define to 1 if the system has the type `long long int'. */
+/* Define to 1 if the system has the type `__extension__ long long int'. */
 #define HAVE_LONG_LONG_INT 1
 
-/* Define to 1 if `long long int' works and is 64 bits. */
+/* Define to 1 if `__extension__ long long int' works and is 64 bits. */
 #define HAVE_LONG_LONG_INT_64 1
 
 /* Define to 1 if you have the <mbarrier.h> header file. */
@@ -622,7 +622,7 @@
 /* Define to 1 if you have the `unsetenv' function. */
 #define HAVE_UNSETENV 1
 
-/* Define to 1 if the system has the type `unsigned long long int'. */
+/* Define to 1 if the system has the type `unsigned __extension__ long long int'. */
 #define HAVE_UNSIGNED_LONG_LONG_INT 1
 
 /* Define to 1 if you have the `utime' function. */
@@ -725,7 +725,7 @@
 #define PG_INT128_TYPE __int128
 
 /* Define to the name of a signed 64-bit integer type. */
-#define PG_INT64_TYPE long long int
+#define PG_INT64_TYPE __extension__ long long int
 
 /* Define to the name of the default PostgreSQL service principal in Kerberos
    (GSSAPI). (--with-krb-srvnam=NAME) */
