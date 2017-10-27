@@ -632,7 +632,7 @@ cursor = function(sql, by = 1, pars = NULL)
   {
     res = fetch(paste("FETCH", by, "FROM", cname))
     if (inherits(res, "pq.status")) stop(res)
-    if (length(res) < 1) stop("StopIteration")
+    if (nrow(res) < 1) stop("StopIteration")
     return(res)
   }
   structure(list(nextElem = f, cursor_name = cname),
