@@ -4,7 +4,7 @@ Timothy H. Keitt
 
 [![CRAN Version](http://www.r-pkg.org/badges/version/rpg)](http://www.r-pkg.org/badges/version/rpg) [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/rpg)](http://cran.rstudio.com/web/packages/rpg/index.html) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thk686/rpg?branch=master&svg=true)](https://ci.appveyor.com/project/thk686/rpg) [![Travis-CI Build Status](https://travis-ci.org/thk686/rpg.svg?branch=master)](https://travis-ci.org/thk686/rpg) 
 
-This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference between ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface. I bascially wrote ```rpg``` as a nice comfy environment for my own work. If you are building infrastructure, you probably want to investigate ```DBI``` and [RPostgres](https://github.com/rstats-db/RPostgres). There is also the excellent [RPostgreSQL](https://cran.r-project.org/web/packages/RPostgreSQL/index.html) package on CRAN.
+This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference between ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface. I basically wrote ```rpg``` as a nice comfy environment for my own work. If you are building infrastructure, you probably want to investigate ```DBI``` and [RPostgres](https://github.com/rstats-db/RPostgres). There is also the excellent [RPostgreSQL](https://cran.r-project.org/web/packages/RPostgreSQL/index.html) package on CRAN.
 
 ### Installation
 
@@ -24,6 +24,10 @@ createdb("exampledb"); connect("exampledb")
 ```
 
 ```
+## No connection... attempting reset... nope... trying default... that worked.
+```
+
+```
 ## CREATE DATABASE
 ```
 
@@ -36,7 +40,7 @@ data(mtcars); write_table(mtcars)
 ```
 
 ```
-## CREATE TABLE
+## INSERT 0 1
 ```
 
 ```r
@@ -109,7 +113,7 @@ data(iris); write_table(iris); list_tables()
 ```
 
 ```
-## CREATE TABLE
+## INSERT 0 1
 ```
 
 ```
@@ -129,8 +133,8 @@ show_conn_stack()
 ```
 
 ```
-##                  host     dbname status.ok
-## 1 /var/run/postgresql exampledb2      TRUE
+##   host     dbname status.ok
+## 1 /tmp exampledb2      TRUE
 ```
 
 ```r
@@ -191,6 +195,8 @@ print(x, digits = 2)
 
 This usage is compatible with ```%dopar%```; you can access these cursors from multiple threads of execution and even across a heterogeneous cluster of machines. See the documentation for ```cursor``` for an example.
 
+Note: after some additional experimentation, I have concluded that parallel processing of cursors in PostgreSQL does not in fact work. You can iterate over a cursor on multiple backends. However it appears that only one of these backends will do any work, probably to ensure the access is serialized. My guess is that requests are forwarded to the portal where the cursor was opened. 
+
 ### Asynchronous queries
 
 You can submit asynchronous queries with ```rpg```. When combined with the connection stack, this allows you to launch queries, push the connection, make a new connection while the first query is completing. By swapping the first connection back to the active state, you can then check for completion or try to cancel the transaction.
@@ -221,20 +227,6 @@ repeat {
 ```
 ## busy... 
 ## busy... 
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
-## busy... 
-## calling cancel...
 ## busy... 
 ## calling cancel...
 ## busy... 
@@ -272,7 +264,7 @@ sp1 = savepoint(); write_table(iris)
 ```
 
 ```
-## CREATE TABLE
+## INSERT 0 1
 ```
 
 ```r
@@ -280,7 +272,7 @@ sp2 = savepoint(); data(Loblolly); write_table(Loblolly); list_tables()
 ```
 
 ```
-## CREATE TABLE
+## INSERT 0 1
 ```
 
 ```
@@ -339,7 +331,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2017-10-11 14:59:12-05
+## 1  mtcars  2017-10-27 10:46:28-05
 ```
 
 ```r
@@ -374,7 +366,7 @@ dropdb("exampledb")
 
 ### News
 
-2/7/17 -- Gave up trying to build libpq on the fly and instead borrowed the excellent work done by the [RPostgres](https://github.com/rstats-db/RPostgres) team. RPostgres is looking very promissing for DBI work.
+2/7/17 -- Gave up trying to build libpq on the fly and instead borrowed the excellent work done by the [RPostgres](https://github.com/rstats-db/RPostgres) team. RPostgres is looking very promising for DBI work.
 
 4/15/16 -- I ripped out and replaced the build setup. I was using the autoconf bits and libpq files distributed with RPostgreSQL (a very good package you should check out). However it had a few peculiarities, like never using the included libpq on Linux. Also, I could not check the libpq version number. So now the package will check your postgres install using the pg_config command and if its not found or the version is not new enough, then libpq is downloaded and built.
 
