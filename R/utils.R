@@ -141,20 +141,13 @@ handle_row_names = function(a, b)
 
 primary_key_name = function(tablename)
 {
-  unlist(fetch("SELECT               
-                  pg_attribute.attname as pkey
-                FROM
-                  pg_index, pg_class, pg_attribute 
-                WHERE
-                  pg_class.oid = $1::regclass
-                AND
-                  indrelid = pg_class.oid
-                AND
-                  pg_attribute.attrelid = pg_class.oid
-                AND 
-                  pg_attribute.attnum = any(pg_index.indkey)
-                AND
-                  indisprimary", tablename))
+  unlist(fetch("SELECT pg_attribute.attname as pkey
+                FROM   pg_index, pg_class, pg_attribute 
+                WHERE  pg_class.oid = $1::regclass
+                AND    indrelid = pg_class.oid
+                AND    pg_attribute.attrelid = pg_class.oid
+                AND    pg_attribute.attnum = any(pg_index.indkey)
+                AND    indisprimary", tablename))
 }
 
 unique_name = function()
