@@ -2,7 +2,7 @@
 Timothy H. Keitt  
 02/08/2017  
 
-[![CRAN Version](http://www.r-pkg.org/badges/version/rpg)](http://www.r-pkg.org/badges/version/rpg) [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/rpg)](http://cran.rstudio.com/web/packages/rpg/index.html) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thk686/rpg?branch=master&svg=true)](https://ci.appveyor.com/project/thk686/rpg) [![Travis-CI Build Status](https://travis-ci.org/thk686/rpg.svg?branch=master)](https://travis-ci.org/thk686/rpg) 
+[![CRAN Version](http://www.r-pkg.org/badges/version/rpg)](http://www.r-pkg.org/badges/version/rpg) [![CRAN Downloads](http://cranlogs.r-pkg.org/badges/rpg)](http://cran.rstudio.com/web/packages/rpg/index.html) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/thk686/rpg?branch=master&svg=true)](https://ci.appveyor.com/project/thk686/rpg) [![Travis-CI Build Status](https://travis-ci.org/thk686/rpg.svg?branch=master)](https://travis-ci.org/thk686/rpg) [![Depsy](http://depsy.org/api/package/cran/rpg/badge.svg)](http://depsy.org/package/r/rpg)
 
 This package wraps PostgreSQL's libpq, a library for interacting with a PostreSQL database. Unlike other database access packages for R, ```rpg``` is designed to be specific to PostgreSQL and, as such, exposes a more of the functionality of libpq. A great deal of thought went into making ```rpg``` simple to use. The major difference between ```rpg``` and most other database packages is that ```rpg``` does not use an object-oriented model. There are no connection objects, result objects and so on. This simplifies the interface and makes using ```rpg``` a lot like using psql, PostgreSQL's command line interface. I basically wrote ```rpg``` as a nice comfy environment for my own work. If you are building infrastructure, you probably want to investigate ```DBI``` and [RPostgres](https://github.com/rstats-db/RPostgres). There is also the excellent [RPostgreSQL](https://cran.r-project.org/web/packages/RPostgreSQL/index.html) package on CRAN.
 
@@ -331,7 +331,7 @@ list_stowed()
 
 ```
 ##    objname                  stamp
-## 1  mtcars  2017-10-27 10:46:28-05
+## 1  mtcars  2017-10-27 12:16:01-05
 ```
 
 ```r
