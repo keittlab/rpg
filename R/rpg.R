@@ -83,10 +83,10 @@ connect = function(dbname, ...){
     values = list(...)
   else
     values = list(dbname = dbname, ...)
+  keywords = names(values)
   status = if (length(values) == 0){
     connect_(character(0), character(0))}
   else{
-    keywords = names(values)
     if (is.null(keywords) || "" %in% keywords)
       stop("all arguments must be named")
     connect_(keywords, as.character(values))}
