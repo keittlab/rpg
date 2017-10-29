@@ -19,7 +19,7 @@ Suggests:
     doParallel (>= 1.0.0),
     hflights (>= 0.1)
 LinkingTo: Rcpp, RApiSerialize
-SystemRequirements: libpq
+SystemRequirements: C++11
 Depends:
     R (>= 3.0.0)
 NeedsCompilation: yes
